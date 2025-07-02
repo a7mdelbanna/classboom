@@ -16,31 +16,24 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Factory function to create a ClassBoom client for a specific school schema
-export function createClassBoomSchemaClient(schemaName: string) {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    db: { schema: schemaName as any },
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  });
-}
-
-// Helper to get the current ClassBoom user's school schema
-export async function getCurrentSchoolClient() {
+// Helper to get current user's school information
+export async function getCurrentUserSchool() {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
-    throw new Error('No authenticated ClassBoom user');
+    throw new Error('No authenticated user');
   }
 
-  // Get the user's school schema from user metadata
-  const schemaName = user.user_metadata?.school_schema;
+  // Get the user's school from the database
+  const { data: school, error } = await supabase
+    .from('schools')
+    .select('*')
+    .eq('owner_id', user.id)
+    .single();
   
-  if (!schemaName) {
-    throw new Error('No ClassBoom school schema found for user');
+  if (error || !school) {
+    throw new Error('No school found for user');
   }
 
-  return createClassBoomSchemaClient(schemaName);
+  return school;
 }

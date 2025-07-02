@@ -1,10 +1,29 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../../auth/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { StudentService } from '../../students/services/studentService';
 
 export function Dashboard() {
   const { user, schoolInfo, userRole, signOut } = useAuth();
   const navigate = useNavigate();
+  const [studentCount, setStudentCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCounts();
+  }, []);
+
+  const loadCounts = async () => {
+    try {
+      const count = await StudentService.getStudentCount();
+      setStudentCount(count);
+    } catch (error) {
+      console.error('Error loading counts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -12,7 +31,7 @@ export function Dashboard() {
   };
 
   const stats = [
-    { label: 'Students', value: '0', color: 'from-blue-500 to-blue-600' },
+    { label: 'Students', value: loading ? '...' : studentCount.toString(), color: 'from-blue-500 to-blue-600' },
     { label: 'Teachers', value: '0', color: 'from-green-500 to-green-600' },
     { label: 'Active Classes', value: '0', color: 'from-purple-500 to-purple-600' },
     { label: 'Today\'s Sessions', value: '0', color: 'from-orange-500 to-orange-600' },
@@ -20,8 +39,8 @@ export function Dashboard() {
 
   const quickActions = [
     { label: 'Add Student', icon: '👨‍🎓', path: '/students/new' },
+    { label: 'View Students', icon: '📋', path: '/students' },
     { label: 'Create Class', icon: '📚', path: '/classes/new' },
-    { label: 'Schedule Session', icon: '📅', path: '/schedule/new' },
     { label: 'View Reports', icon: '📊', path: '/reports' },
   ];
 

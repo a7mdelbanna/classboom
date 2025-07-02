@@ -25,7 +25,7 @@ export interface Database {
         Insert: {
           id?: string
           name: string
-          schema_name: string
+          schema_name?: string
           owner_id: string
           subscription_plan?: string
           subscription_status?: string

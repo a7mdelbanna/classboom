@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS public.schools (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
-  schema_name TEXT NOT NULL UNIQUE,
+  schema_name TEXT DEFAULT 'public',
   owner_id UUID NOT NULL,
   subscription_plan TEXT DEFAULT 'trial',
   subscription_status TEXT DEFAULT 'active',
@@ -352,6 +352,14 @@ CREATE POLICY "School owners can view their school" ON public.schools
 -- School owners can update their school
 CREATE POLICY "School owners can update their school" ON public.schools
   FOR UPDATE USING (owner_id = auth.uid());
+
+-- Users can create their own school
+CREATE POLICY "Users can create their own school" ON public.schools
+  FOR INSERT WITH CHECK (owner_id = auth.uid());
+
+-- School owners can delete their school
+CREATE POLICY "School owners can delete their school" ON public.schools
+  FOR DELETE USING (owner_id = auth.uid());
 
 -- 6. TRIGGERS AND UTILITIES
 -- =========================

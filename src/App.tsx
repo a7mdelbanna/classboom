@@ -6,6 +6,9 @@ import { TrialWizard } from './features/auth/pages/TrialWizard';
 import { DemoLogin } from './features/auth/pages/DemoLogin';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Dashboard } from './features/dashboard/pages/Dashboard';
+import { StudentList } from './features/students/pages/StudentList';
+import { AddStudent } from './features/students/pages/AddStudent';
+import { StudentProfile } from './features/students/pages/StudentProfile';
 
 function App() {
   return (
@@ -25,6 +28,29 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           } />
+          
+          {/* Student Routes */}
+          <Route path="/students" element={
+            <ProtectedRoute>
+              <StudentList />
+            </ProtectedRoute>
+          } />
+          <Route path="/students/new" element={
+            <ProtectedRoute>
+              <AddStudent />
+            </ProtectedRoute>
+          } />
+          <Route path="/students/:id" element={
+            <ProtectedRoute>
+              <StudentProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="/students/:id/edit" element={
+            <ProtectedRoute>
+              <AddStudent />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

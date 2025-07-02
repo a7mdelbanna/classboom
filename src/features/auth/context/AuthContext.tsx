@@ -16,7 +16,6 @@ interface AuthContextType {
   loading: boolean;
   schoolInfo: SchoolInfo | null;
   userRole: string | null;
-  schoolSchema: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string, schoolName?: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -31,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [schoolSchema, setSchoolSchema] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -55,24 +53,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loadUserMetadata = async (user: User) => {
-    const metadata = user.user_metadata;
-    if (metadata?.school_schema) {
-      setSchoolSchema(metadata.school_schema);
-      setUserRole(metadata.role);
-      setSchoolInfo({
-        id: metadata.school_id,
-        name: metadata.school_name,
-        subscription_plan: metadata.subscription_plan || 'trial',
-        subscription_status: metadata.subscription_status || 'active',
-        trial_ends_at: metadata.trial_ends_at
-      });
-    } else {
-      const { data, error } = await supabase.rpc('handle_classboom_login', { p_user_id: user.id });
-      if (data && data.success) {
-        setSchoolSchema(data.school_schema);
-        setUserRole(data.role);
-        setSchoolInfo(data.school);
+    try {
+      // Try to get school from database
+      const { data: school, error } = await supabase
+        .from('schools')
+        .select('*')
+        .eq('owner_id', user.id)
+        .single();
+      
+      if (school && !error) {
+        setUserRole('school_owner');
+        setSchoolInfo({
+          id: school.id,
+          name: school.name,
+          subscription_plan: school.subscription_plan || 'trial',
+          subscription_status: school.subscription_status || 'active',
+          trial_ends_at: school.trial_ends_at
+        });
+        
+        // Update user metadata with school_id if not already there
+        if (!user.user_metadata?.school_id) {
+          await supabase.auth.updateUser({
+            data: { ...user.user_metadata, school_id: school.id }
+          });
+        }
+      } else if (user.user_metadata?.school_name) {
+        // No school found but user has school_name - create one
+        console.log('Creating school during metadata load...');
+        const { data: newSchool } = await supabase
+          .from('schools')
+          .insert({
+            name: user.user_metadata.school_name,
+            owner_id: user.id,
+            subscription_plan: 'trial',
+            subscription_status: 'active',
+            trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+          })
+          .select()
+          .single();
+        
+        if (newSchool) {
+          setUserRole('school_owner');
+          setSchoolInfo({
+            id: newSchool.id,
+            name: newSchool.name,
+            subscription_plan: 'trial',
+            subscription_status: 'active',
+            trial_ends_at: newSchool.trial_ends_at
+          });
+          
+          // Update user metadata with school_id for faster access
+          await supabase.auth.updateUser({
+            data: { ...user.user_metadata, school_id: newSchool.id }
+          });
+        }
       }
+    } catch (err) {
+      console.error('Error loading user metadata:', err);
     }
   };
 
@@ -81,12 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
     
     if (data.user) {
-      const { data: loginData } = await supabase.rpc('handle_classboom_login', { p_user_id: data.user.id });
-      if (loginData && loginData.success) {
-        setSchoolSchema(loginData.school_schema);
-        setUserRole(loginData.role);
-        setSchoolInfo(loginData.school);
-      }
+      await loadUserMetadata(data.user);
     }
   };
 
@@ -110,6 +142,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data?.user && !data.session) {
       throw new Error('Please check your email to confirm your account');
     }
+
+    // If school owner signup, ensure school is created
+    if (schoolName && data?.user) {
+      try {
+        console.log('School owner signup detected, ensuring school setup...');
+        
+        // Check if user already has a school
+        const { data: existingSchool } = await supabase
+          .from('schools')
+          .select('*')
+          .eq('owner_id', data.user.id)
+          .single();
+        
+        if (existingSchool) {
+          console.log('School already exists');
+          setUserRole('school_owner');
+          setSchoolInfo({
+            id: existingSchool.id,
+            name: existingSchool.name,
+            subscription_plan: existingSchool.subscription_plan || 'trial',
+            subscription_status: existingSchool.subscription_status || 'active',
+            trial_ends_at: existingSchool.trial_ends_at
+          });
+        } else {
+          console.log('Creating school manually...');
+          // Create school directly
+          const { data: newSchool } = await supabase
+            .from('schools')
+            .insert({
+              name: schoolName,
+              owner_id: data.user.id,
+              subscription_plan: 'trial',
+              subscription_status: 'active',
+              trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+            })
+            .select()
+            .single();
+          
+          if (newSchool) {
+            console.log('School created successfully');
+            setUserRole('school_owner');
+            setSchoolInfo({
+              id: newSchool.id,
+              name: newSchool.name,
+              subscription_plan: 'trial',
+              subscription_status: 'active',
+              trial_ends_at: newSchool.trial_ends_at
+            });
+            
+            // Update user metadata with school_id
+            if (data.user) {
+              await supabase.auth.updateUser({
+                data: { ...data.user.user_metadata, school_id: newSchool.id }
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error during school setup:', err);
+      }
+    }
   };
 
   const signOut = async () => {
@@ -117,7 +210,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
     setSchoolInfo(null);
     setUserRole(null);
-    setSchoolSchema(null);
   };
 
   const resetPassword = async (email: string) => {
@@ -134,7 +226,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       schoolInfo,
       userRole,
-      schoolSchema,
       signIn,
       signUp,
       signOut,
