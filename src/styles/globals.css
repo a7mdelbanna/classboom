@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --classboom-primary: 249 115 22;
+    --classboom-secondary: 59 130 246;
+    --classboom-background: 255 255 255;
+    --classboom-foreground: 17 24 39;
+    --classboom-muted: 243 244 246;
+    --classboom-muted-foreground: 107 114 128;
+    --classboom-card: 255 255 255;
+    --classboom-card-foreground: 17 24 39;
+    --classboom-border: 229 231 235;
+    --classboom-input: 255 255 255;
+    --classboom-ring: 249 115 22;
+    --classboom-radius: 0.5rem;
+  }
+
+  .dark {
+    --classboom-primary: 251 146 60;
+    --classboom-secondary: 96 165 250;
+    --classboom-background: 17 24 39;
+    --classboom-foreground: 243 244 246;
+    --classboom-muted: 31 41 55;
+    --classboom-muted-foreground: 156 163 175;
+    --classboom-card: 31 41 55;
+    --classboom-card-foreground: 243 244 246;
+    --classboom-border: 55 65 81;
+    --classboom-input: 31 41 55;
+    --classboom-ring: 251 146 60;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .classboom-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .classboom-glassmorphism {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .classboom-button {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium 
+           transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 
+           focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none 
+           disabled:opacity-50 active:scale-95;
+  }
+
+  .classboom-button-primary {
+    @apply classboom-button bg-classboom-primary-500 text-white 
+           hover:bg-classboom-primary-600 shadow-lg hover:shadow-xl;
+  }
+
+  .classboom-button-secondary {
+    @apply classboom-button bg-classboom-secondary-500 text-white 
+           hover:bg-classboom-secondary-600;
+  }
+
+  .classboom-button-ghost {
+    @apply classboom-button hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .classboom-card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm 
+           transition-all duration-200 hover:shadow-md;
+  }
+
+  .classboom-input {
+    @apply flex h-10 w-full rounded-md border border-input bg-input px-3 py-2 
+           text-sm ring-offset-background file:border-0 file:bg-transparent 
+           file:text-sm file:font-medium placeholder:text-muted-foreground 
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
+           focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+           transition-all duration-200;
+  }
+
+  .classboom-skeleton {
+    @apply animate-pulse rounded-md bg-muted;
+  }
+
+  .classboom-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs 
+           font-semibold transition-colors focus:outline-none focus:ring-2 
+           focus:ring-ring focus:ring-offset-2;
+  }
+
+  .classboom-gradient-text {
+    @apply bg-gradient-to-r from-classboom-primary-500 to-classboom-secondary-500 
+           bg-clip-text text-transparent;
+  }
+
+  .classboom-gradient-bg {
+    @apply bg-gradient-to-br from-classboom-primary-500 to-classboom-secondary-500;
+  }
+}
+
+@layer utilities {
+  .classboom-animation-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .classboom-animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .classboom-animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .classboom-scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .classboom-scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
