@@ -13,8 +13,8 @@ async function verifySetup() {
   console.log('🔍 Verifying ClassBoom Setup...\n');
   
   // Check environment variables
-  const supabaseUrl = process.env.VITE_CLASSBOOM_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_CLASSBOOM_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
   
   console.log('📋 Environment Variables:');
   console.log('  - Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
@@ -23,8 +23,8 @@ async function verifySetup() {
   if (!supabaseUrl || !supabaseKey) {
     console.error('\n❌ Missing required environment variables!');
     console.log('Please ensure your .env file contains:');
-    console.log('  VITE_CLASSBOOM_SUPABASE_URL=your-project-url');
-    console.log('  VITE_CLASSBOOM_SUPABASE_ANON_KEY=your-anon-key');
+    console.log('  VITE_SUPABASE_URL=your-project-url');
+    console.log('  VITE_SUPABASE_ANON_KEY=your-anon-key');
     process.exit(1);
   }
   

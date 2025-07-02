@@ -35,8 +35,8 @@ console.log('\n🔧 Environment Setup:');
 const envPath = join(rootDir, '.env');
 if (existsSync(envPath)) {
   const env = readFileSync(envPath, 'utf8');
-  const hasUrl = env.includes('VITE_CLASSBOOM_SUPABASE_URL');
-  const hasKey = env.includes('VITE_CLASSBOOM_SUPABASE_ANON_KEY');
+  const hasUrl = env.includes('VITE_SUPABASE_URL');
+  const hasKey = env.includes('VITE_SUPABASE_ANON_KEY');
   
   console.log(`   .env file: ✅ Exists`);
   console.log(`   Supabase URL: ${hasUrl ? '✅ Set' : '❌ Missing'}`);
@@ -69,8 +69,8 @@ if (existsSync(envPath)) {
     });
     
     const supabase = createClient(
-      env.VITE_CLASSBOOM_SUPABASE_URL,
-      env.VITE_CLASSBOOM_SUPABASE_ANON_KEY
+      env.VITE_SUPABASE_URL,
+      env.VITE_SUPABASE_ANON_KEY
     );
     
     // Quick test

@@ -1,6 +1,3 @@
-// ClassBoom Database Types
-// Generated based on Supabase schema
-
 export type Json =
   | string
   | number
@@ -93,18 +90,7 @@ export interface Database {
       }
     }
     Views: {
-      classboom_user_profiles: {
-        Row: {
-          user_id: string
-          email: string
-          full_name: string | null
-          school_schema: string | null
-          role: string | null
-          school_name: string | null
-          created_at: string
-          last_sign_in_at: string | null
-        }
-      }
+      [_ in never]: never
     }
     Functions: {
       create_classboom_school_schema: {
@@ -118,7 +104,7 @@ export interface Database {
         Args: {
           p_user_id: string
         }
-        Returns: string | null
+        Returns: string
       }
       handle_classboom_login: {
         Args: {
@@ -132,62 +118,9 @@ export interface Database {
         }
         Returns: boolean
       }
-      validate_classboom_invite: {
-        Args: {
-          p_invite_code: string
-        }
-        Returns: Json
-      }
     }
     Enums: {
-      subscription_status: 'active' | 'cancelled' | 'expired' | 'trial'
-      user_role: 'admin' | 'teacher' | 'student' | 'parent'
-      payment_status: 'pending' | 'paid' | 'overdue' | 'cancelled' | 'refunded'
-      session_status: 'scheduled' | 'completed' | 'cancelled' | 'no_show' | 'rescheduled'
-      attendance_status: 'present' | 'absent' | 'late' | 'excused'
+      [_ in never]: never
     }
   }
-}
-
-// ClassBoom specific types
-export interface ClassBoomUser {
-  id: string
-  email: string
-  fullName: string
-  role: Database['public']['Enums']['user_role']
-  schoolSchema: string
-  schoolName: string
-  avatarUrl?: string
-  phone?: string
-}
-
-export interface ClassBoomSchool {
-  id: string
-  name: string
-  schemaName: string
-  subscriptionPlan: string
-  subscriptionStatus: Database['public']['Enums']['subscription_status']
-  trialEndsAt?: string
-  settings: Record<string, any>
-}
-
-export interface ClassBoomStudent {
-  id: string
-  userId: string
-  studentCode?: string
-  dateOfBirth?: string
-  gradeLevel?: string
-  status: 'active' | 'inactive' | 'graduated' | 'dropped'
-  enrolledAt: string
-}
-
-export interface ClassBoomSession {
-  id: string
-  subscriptionId: string
-  scheduledAt: string
-  durationMinutes: number
-  status: Database['public']['Enums']['session_status']
-  teacherId?: string
-  room?: string
-  notes?: string
 }
