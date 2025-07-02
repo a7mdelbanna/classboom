@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test:connection": "node scripts/test-supabase-connection.js",
     "verify:setup": "node scripts/verify-classboom-setup.js",
-    "claude:status": "node scripts/claude-status.js"
+    "claude:status": "node scripts/claude-status.js",
+    "claude:startup": "node scripts/claude-startup.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

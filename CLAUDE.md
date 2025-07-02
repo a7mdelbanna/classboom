@@ -1,12 +1,19 @@
 # ClassBoom Project State - Claude Memory File
 
+## 🚨 FIRST STEPS WHEN STARTING A NEW SESSION:
+
+1. **Read this entire file** to understand the project
+2. **Run**: `npm run claude:startup` for immediate status
+3. **Check for MCP tools** (tools starting with `mcp_` or `mcp__`)
+4. **Follow the "Current Status & Next Actions" section** below
+
 ## Project Overview
 **ClassBoom** is a revolutionary School Management SaaS platform built with:
 - Frontend: React 18, TypeScript, Vite, Tailwind CSS, Framer Motion
 - Backend: Supabase (PostgreSQL with multi-tenant architecture)
 - Authentication: Supabase Auth with custom school schemas
 
-## Current Status (Last Updated: 2025-01-02)
+## Current Status (Last Updated: 2025-01-02 @ 21:30)
 
 ### ✅ Completed:
 1. **Project Setup**
@@ -149,21 +156,54 @@ git push
 - Colors: Orange (primary), Blue (secondary)
 - Logo: Located at `/public/classboom-logo.svg`
 
-## Current Blockers
+## Current Status & Next Actions
 
-1. Need to run database migrations in Supabase
-2. MCP server needs Claude restart to activate
-3. Then can proceed with auth implementation
+### 🔄 MCP Server Status (AFTER RESTART)
+1. **First, check if MCP tools are available**:
+   - Look for tools starting with `mcp_` or `mcp__`
+   - Try the Task tool and search for "mcp" in available tools
+   - If MCP tools are present, you can run migrations directly!
 
-## Quick Context for Next Session
+2. **If MCP tools are NOT available**:
+   - The user needs to run migrations manually
+   - Direct them to: https://supabase.com/dashboard/project/hokgyujgsvdfhpfrorsu/sql/new
+   - File to run: `supabase/setup-classboom.sql`
 
-When you return to this project:
-1. Check if database tables exist: `npm run verify:setup`
-2. If not, guide user to run migrations
-3. Once ready, start with Phase 1: Authentication
-4. Use the established patterns and styling
+### 📋 Immediate Next Steps (IN ORDER):
+
+1. **Check MCP Status**:
+   ```bash
+   npm run claude:status
+   ```
+
+2. **If MCP is working**: 
+   - Use MCP tools to run the database migrations
+   - Verify with `npm run verify:setup`
+
+3. **If MCP is NOT working**:
+   - Guide user to run migrations manually
+   - Wait for confirmation
+   - Verify with `npm run verify:setup`
+
+4. **Once Database is Ready** (tables exist), start Phase 1:
+   - [ ] Create `/src/features/auth/` structure
+   - [ ] Build `LoginPage.tsx` with animations
+   - [ ] Build `SignupPage.tsx` with school creation flow
+   - [ ] Build `TrialWizard.tsx` (multi-step registration)
+   - [ ] Implement email verification
+   - [ ] Create theme selector component
+
+### 🎯 Current Goal
+Get the database migrations executed (either via MCP or manually), then immediately start building the beautiful ClassBoom authentication system.
+
+### 💡 Key Implementation Notes
+- Use Framer Motion for all animations
+- Follow the ClassBoom design system in `/src/styles/globals.css`
+- Use the Supabase client from `/src/lib/supabase.ts`
+- Multi-tenant: School owners create schemas automatically on signup
+- Use optimistic updates for all user actions
 
 ---
 
-This file should be your first read when returning to the ClassBoom project.
-Last updated: 2025-01-02
+**REMEMBER**: This is a premium SaaS product. Every interaction should feel delightful!
+Last updated: 2025-01-02 @ 21:30
