@@ -52,8 +52,10 @@
 
 6. **MCP Server Configuration**
    - Created `.mcp.json` in project root
-   - Configured for Supabase access
-   - Waiting for restart to activate
+   - Configured with `@supabase/mcp-server-supabase@latest`
+   - Project ref: hokgyujgsvdfhpfrorsu
+   - **Status**: Requires Claude restart to activate MCP tools
+   - See `MCP_SETUP.md` for details
 
 ### 🚧 Next Steps (TODO):
 

@@ -4,11 +4,11 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-supabase"
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=hokgyujgsvdfhpfrorsu"
       ],
       "env": {
-        "SUPABASE_URL": "https://hokgyujgsvdfhpfrorsu.supabase.co",
-        "SUPABASE_SERVICE_ROLE_KEY": "sbp_208aa30e6b741f0720c09bcc6ee26badd33f2d89"
+        "SUPABASE_ACCESS_TOKEN": "sbp_208aa30e6b741f0720c09bcc6ee26badd33f2d89"
       }
     }
   }
