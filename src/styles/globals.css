@@ -5,8 +5,13 @@
 
 @layer base {
   :root {
+    /* Dynamic theme colors - set by ThemeContext */
     --classboom-primary: 249 115 22;
     --classboom-secondary: 59 130 246;
+    --classboom-primary-hex: #f97316;
+    --classboom-secondary-hex: #3b82f6;
+    
+    /* Light mode colors */
     --classboom-background: 255 255 255;
     --classboom-foreground: 17 24 39;
     --classboom-muted: 243 244 246;
@@ -15,13 +20,12 @@
     --classboom-card-foreground: 17 24 39;
     --classboom-border: 229 231 235;
     --classboom-input: 255 255 255;
-    --classboom-ring: 249 115 22;
+    --classboom-ring: var(--classboom-primary);
     --classboom-radius: 0.5rem;
   }
 
   .dark {
-    --classboom-primary: 251 146 60;
-    --classboom-secondary: 96 165 250;
+    /* Dark mode colors */
     --classboom-background: 17 24 39;
     --classboom-foreground: 243 244 246;
     --classboom-muted: 31 41 55;
@@ -30,18 +34,41 @@
     --classboom-card-foreground: 243 244 246;
     --classboom-border: 55 65 81;
     --classboom-input: 31 41 55;
-    --classboom-ring: 251 146 60;
   }
 
   * {
-    @apply border-gray-200;
+    @apply border-classboom-border;
   }
 
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-classboom-background text-classboom-foreground antialiased transition-colors duration-200;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: rgb(var(--classboom-background));
+    color: rgb(var(--classboom-foreground));
   }
 }
+
+/* Color utility classes */
+.bg-classboom-background { background-color: rgb(var(--classboom-background)); }
+.bg-classboom-foreground { background-color: rgb(var(--classboom-foreground)); }
+.bg-classboom-card { background-color: rgb(var(--classboom-card)); }
+.bg-classboom-muted { background-color: rgb(var(--classboom-muted)); }
+.bg-classboom-primary { background-color: rgb(var(--classboom-primary)); }
+.bg-classboom-secondary { background-color: rgb(var(--classboom-secondary)); }
+
+.text-classboom-foreground { color: rgb(var(--classboom-foreground)); }
+.text-classboom-muted-foreground { color: rgb(var(--classboom-muted-foreground)); }
+.text-classboom-card-foreground { color: rgb(var(--classboom-card-foreground)); }
+.text-classboom-primary { color: rgb(var(--classboom-primary)); }
+.text-classboom-secondary { color: rgb(var(--classboom-secondary)); }
+
+.border-classboom-border { border-color: rgb(var(--classboom-border)); }
+.border-classboom-primary { border-color: rgb(var(--classboom-primary)); }
+.border-classboom-secondary { border-color: rgb(var(--classboom-secondary)); }
+
+.ring-classboom-ring { --tw-ring-color: rgb(var(--classboom-ring)); }
+.ring-classboom-primary { --tw-ring-color: rgb(var(--classboom-primary)); }
+.ring-classboom-secondary { --tw-ring-color: rgb(var(--classboom-secondary)); }
 
 @layer components {
   .classboom-container {
@@ -49,7 +76,7 @@
   }
 
   .classboom-glassmorphism {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/20 shadow-xl;
   }
 
   .classboom-button {
@@ -60,13 +87,21 @@
   }
 
   .classboom-button-primary {
-    @apply classboom-button bg-classboom-primary-500 text-white 
-           hover:bg-classboom-primary-600 shadow-lg hover:shadow-xl;
+    @apply classboom-button text-white shadow-lg hover:shadow-xl;
+    background-color: rgb(var(--classboom-primary));
+  }
+  
+  .classboom-button-primary:hover {
+    filter: brightness(0.9);
   }
 
   .classboom-button-secondary {
-    @apply classboom-button bg-classboom-secondary-500 text-white 
-           hover:bg-classboom-secondary-600;
+    @apply classboom-button text-white;
+    background-color: rgb(var(--classboom-secondary));
+  }
+  
+  .classboom-button-secondary:hover {
+    filter: brightness(0.9);
   }
 
   .classboom-button-ghost {
@@ -74,21 +109,30 @@
   }
 
   .classboom-card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm 
-           transition-all duration-200 hover:shadow-md;
+    @apply rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md;
+    background-color: rgb(var(--classboom-card));
+    color: rgb(var(--classboom-card-foreground));
+    border-color: rgb(var(--classboom-border));
   }
 
   .classboom-input {
-    @apply flex h-10 w-full rounded-md border border-input bg-input px-3 py-2 
-           text-sm ring-offset-background file:border-0 file:bg-transparent 
-           file:text-sm file:font-medium placeholder:text-muted-foreground 
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
-           focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
-           transition-all duration-200;
+    @apply flex h-10 w-full rounded-md border px-3 py-2 text-sm 
+           file:border-0 file:bg-transparent file:text-sm file:font-medium 
+           placeholder:text-classboom-muted-foreground focus-visible:outline-none 
+           focus-visible:ring-2 focus-visible:ring-offset-2 
+           disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200;
+    background-color: rgb(var(--classboom-input));
+    border-color: rgb(var(--classboom-border));
+    color: rgb(var(--classboom-foreground));
+  }
+  
+  .classboom-input:focus-visible {
+    --tw-ring-color: rgb(var(--classboom-ring));
   }
 
   .classboom-skeleton {
-    @apply animate-pulse rounded-md bg-muted;
+    @apply animate-pulse rounded-md;
+    background-color: rgb(var(--classboom-muted));
   }
 
   .classboom-badge {
@@ -117,12 +161,12 @@
   }
 
   .classboom-gradient-text {
-    @apply bg-gradient-to-r from-classboom-primary-500 to-classboom-secondary-500 
-           bg-clip-text text-transparent;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(to right, rgb(var(--classboom-primary)), rgb(var(--classboom-secondary)));
   }
 
   .classboom-gradient-bg {
-    @apply bg-gradient-to-br from-classboom-primary-500 to-classboom-secondary-500;
+    background-image: linear-gradient(to bottom right, rgb(var(--classboom-primary)), rgb(var(--classboom-secondary)));
   }
 }
 

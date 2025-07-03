@@ -4,11 +4,13 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         classboom: {
           primary: {
+            DEFAULT: 'rgb(var(--classboom-primary) / <alpha-value>)',
             50: '#fff7ed',
             100: '#ffedd5',
             200: '#fed7aa',
@@ -22,6 +24,7 @@ export default {
             950: '#451a03',
           },
           secondary: {
+            DEFAULT: 'rgb(var(--classboom-secondary) / <alpha-value>)',
             50: '#eff6ff',
             100: '#dbeafe',
             200: '#bfdbfe',

@@ -42,20 +42,28 @@ export function TrialWidget() {
       initial={{ x: 100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 100, opacity: 0 }}
-      className="fixed bottom-6 right-6 z-50"
+      className="fixed bottom-8 right-8 z-50"
     >
       <motion.div
         animate={{ width: isExpanded ? 320 : 120 }}
-        className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-visible relative"
       >
-        <div className="relative p-4">
-          {/* Close Button */}
-          <button
+        {/* Close Button - Outside the widget for better positioning */}
+        {!isExpanded && (
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
             onClick={handleMinimize}
-            className="absolute top-2 right-2 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="absolute -top-2 -right-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full shadow-lg 
+              border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 
+              transition-all hover:scale-110 flex items-center justify-center z-10"
           >
-            <HiX className="w-4 h-4 text-gray-400" />
-          </button>
+            <HiX className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          </motion.button>
+        )}
+        
+        <div className="relative p-4 overflow-hidden">
 
           {/* Collapsed View */}
           <AnimatePresence mode="wait">
@@ -66,7 +74,7 @@ export function TrialWidget() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsExpanded(true)}
-                className="cursor-pointer"
+                className="cursor-pointer select-none"
               >
                 {/* Progress Ring */}
                 <div className="relative w-24 h-24 mx-auto">
@@ -76,9 +84,10 @@ export function TrialWidget() {
                       cx="48"
                       cy="48"
                       r="45"
-                      stroke="#e5e7eb"
+                      stroke="currentColor"
                       strokeWidth="6"
                       fill="none"
+                      className="text-gray-200 dark:text-gray-700"
                     />
                     {/* Progress circle */}
                     <circle
@@ -99,13 +108,13 @@ export function TrialWidget() {
                     <span className="text-2xl font-bold" style={{ color: colors.primary }}>
                       {daysLeft}
                     </span>
-                    <span className="text-xs text-gray-500">days</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">days</span>
                   </div>
                 </div>
-                <p className="text-center text-xs text-gray-600 mt-2">Trial ends soon</p>
+                <p className="text-center text-xs text-gray-600 dark:text-gray-400 mt-2">Trial ends soon</p>
               </motion.div>
             ) : (
-              /* Expanded View */
+              /* Expanded View with close button in header */
               <motion.div
                 key="expanded"
                 initial={{ opacity: 0 }}
@@ -119,27 +128,28 @@ export function TrialWidget() {
                       <HiSparkles className="w-6 h-6" style={{ color: colors.primary }} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">Trial Period</h3>
-                      <p className="text-sm text-gray-500">{daysLeft} days remaining</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Trial Period</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{daysLeft} days remaining</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setIsExpanded(false)}
-                    className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    title="Collapse"
                   >
-                    <HiX className="w-4 h-4 text-gray-400" />
+                    <HiX className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   </button>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Trial Progress</span>
+                    <span className="text-gray-600 dark:text-gray-400">Trial Progress</span>
                     <span className="font-medium" style={{ color: colors.primary }}>
                       {totalDays - daysLeft} of {totalDays} days
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${percentageUsed}%` }}
@@ -152,23 +162,23 @@ export function TrialWidget() {
 
                 {/* Features Usage */}
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700">Features Used:</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Features Used:</p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-gray-600">Student Management</span>
+                      <span className="text-gray-600 dark:text-gray-400">Student Management</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                      <span className="text-gray-400">Class Scheduling</span>
+                      <span className="text-gray-400 dark:text-gray-500">Class Scheduling</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                      <span className="text-gray-400">Payment Processing</span>
+                      <span className="text-gray-400 dark:text-gray-500">Payment Processing</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                      <span className="text-gray-400">Analytics</span>
+                      <span className="text-gray-400 dark:text-gray-500">Analytics</span>
                     </div>
                   </div>
                 </div>
@@ -180,18 +190,19 @@ export function TrialWidget() {
                   onClick={() => navigate('/upgrade')}
                   className="w-full py-3 px-4 rounded-xl text-white font-medium
                     flex items-center justify-center space-x-2 transition-all duration-200
-                    shadow-lg hover:shadow-xl"
+                    shadow-lg hover:shadow-xl relative overflow-hidden group"
                   style={{ 
                     background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` 
                   }}
                 >
-                  <span>Upgrade Now</span>
-                  <HiArrowRight className="w-4 h-4" />
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  <span className="relative z-10">Upgrade Now</span>
+                  <HiArrowRight className="w-4 h-4 relative z-10" />
                 </motion.button>
 
                 {/* Motivational Message */}
                 {daysLeft <= 3 && (
-                  <p className="text-xs text-center text-gray-600">
+                  <p className="text-xs text-center text-gray-600 dark:text-gray-400">
                     Don't lose access to your data! Upgrade today.
                   </p>
                 )}

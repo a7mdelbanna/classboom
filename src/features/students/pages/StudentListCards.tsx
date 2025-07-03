@@ -68,10 +68,10 @@ export function StudentListCards() {
 
   const getStatusBadge = (status: Student['status']) => {
     const styles = {
-      active: 'bg-green-100 text-green-800 border-green-200',
-      inactive: 'bg-gray-100 text-gray-800 border-gray-200',
-      graduated: 'bg-blue-100 text-blue-800 border-blue-200',
-      dropped: 'bg-red-100 text-red-800 border-red-200'
+      active: 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+      inactive: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600',
+      graduated: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+      dropped: 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800'
     };
 
     const icons = {
@@ -104,14 +104,14 @@ export function StudentListCards() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{terminology.students}</h1>
-            <p className="text-gray-600 mt-1">Manage your {terminology.students.toLowerCase()} and their information</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{terminology.students}</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your {terminology.students.toLowerCase()} and their information</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddModal(true)}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+            className="bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white px-6 py-3 rounded-xl hover:brightness-110 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -122,19 +122,19 @@ export function StudentListCards() {
 
         {/* Stats */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-            <p className="text-blue-600 text-sm font-medium">Total {terminology.students}</p>
-            <p className="text-2xl font-bold text-blue-900">{students.length}</p>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4">
+            <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">Total {terminology.students}</p>
+            <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{students.length}</p>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-            <p className="text-green-600 text-sm font-medium">Active</p>
-            <p className="text-2xl font-bold text-green-900">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4">
+            <p className="text-green-600 dark:text-green-400 text-sm font-medium">Active</p>
+            <p className="text-2xl font-bold text-green-900 dark:text-green-100">
               {students.filter(s => s.status === 'active').length}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-            <p className="text-purple-600 text-sm font-medium">New This Month</p>
-            <p className="text-2xl font-bold text-purple-900">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4">
+            <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">New This Month</p>
+            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
               {students.filter(s => {
                 const enrolledDate = new Date(s.enrolled_at);
                 const now = new Date();
@@ -143,14 +143,14 @@ export function StudentListCards() {
               }).length}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
-            <p className="text-orange-600 text-sm font-medium">Total Capacity</p>
-            <p className="text-2xl font-bold text-orange-900">∞</p>
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-4">
+            <p className="text-orange-600 dark:text-orange-400 text-sm font-medium">Total Capacity</p>
+            <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">∞</p>
           </div>
         </div>
       </div>
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
               <div className="relative">
@@ -159,7 +159,7 @@ export function StudentListCards() {
                   placeholder={`Search by name, email, or ${terminology.student.toLowerCase()} code...`}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
                 <svg
                   className="absolute left-3 top-3.5 w-5 h-5 text-gray-400"
@@ -175,7 +175,7 @@ export function StudentListCards() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -189,7 +189,7 @@ export function StudentListCards() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
@@ -204,18 +204,18 @@ export function StudentListCards() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-sm p-12 text-center"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center"
           >
-            <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-12 h-12 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No {terminology.students.toLowerCase()} yet</h3>
-            <p className="text-gray-600 mb-6">Start by adding your first {terminology.student.toLowerCase()} to ClassBoom</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No {terminology.students.toLowerCase()} yet</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Start by adding your first {terminology.student.toLowerCase()} to ClassBoom</p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
+              className="bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white px-6 py-3 rounded-xl hover:brightness-110 transition-all duration-200"
             >
               Add First {terminology.student}
             </button>
@@ -232,22 +232,22 @@ export function StudentListCards() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ y: -5 }}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
                 >
                   {/* Card Header with Avatar */}
                   <div className="relative p-6 pb-4">
                     {/* Actions - Always visible on mobile, hover on desktop */}
                     <div className="absolute top-4 right-4 z-10">
-                      <div className="flex space-x-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-1 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 md:transform md:group-hover:scale-100 md:scale-90">
+                      <div className="flex space-x-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-md p-1 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 md:transform md:group-hover:scale-100 md:scale-90">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingStudent(student);
                           }}
-                          className="p-2 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                          className="p-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md transition-colors"
                           title="Edit student"
                         >
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
@@ -256,10 +256,10 @@ export function StudentListCards() {
                             e.stopPropagation();
                             setDeletingStudent(student);
                           }}
-                          className="p-2 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                          className="p-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-colors"
                           title="Delete student"
                         >
-                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
@@ -281,11 +281,11 @@ export function StudentListCards() {
                         </div>
                       )}
 
-                      <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
+                      <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white text-center">
                         {`${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unnamed'}
                       </h3>
                       
-                      <p className="text-sm text-gray-500 font-mono mt-1">{student.student_code}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">{student.student_code}</p>
 
                       <div className="mt-3">
                         {getStatusBadge(student.status)}
@@ -299,35 +299,35 @@ export function StudentListCards() {
                     <div className="space-y-2">
                       {student.email && (
                         <div className="flex items-center space-x-2 text-sm">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
-                          <span className="text-gray-600 truncate">{student.email}</span>
+                          <span className="text-gray-600 dark:text-gray-400 truncate">{student.email}</span>
                         </div>
                       )}
                       
                       {student.phone && (
                         <div className="flex items-center space-x-2 text-sm">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                           </svg>
-                          <span className="text-gray-600">{formatPhoneNumber(student.phone)}</span>
+                          <span className="text-gray-600 dark:text-gray-400">{formatPhoneNumber(student.phone)}</span>
                         </div>
                       )}
 
                       {student.skill_level && (
                         <div className="flex items-center space-x-2 text-sm">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
-                          <span className="text-gray-600">{student.skill_level}</span>
+                          <span className="text-gray-600 dark:text-gray-400">{student.skill_level}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Enrolled Date */}
-                    <div className="pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-500">
+                    <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Enrolled {new Date(student.enrolled_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -336,7 +336,7 @@ export function StudentListCards() {
                     <div className="pt-3">
                       <button
                         onClick={() => navigate(`/students/${student.id}`)}
-                        className="w-full py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                        className="w-full py-2 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
                       >
                         View Profile →
                       </button>
@@ -381,14 +381,14 @@ export function StudentListCards() {
         size="sm"
       >
         <div className="p-6">
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Are you sure you want to delete <strong>{deletingStudent?.first_name} {deletingStudent?.last_name}</strong>? 
             This action cannot be undone.
           </p>
           <div className="flex space-x-3">
             <button
               onClick={() => setDeletingStudent(null)}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
             >
               Cancel
             </button>

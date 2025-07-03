@@ -171,13 +171,13 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
               px-3 py-2.5 rounded-lg
               transition-all duration-200 group relative
               ${active 
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg' 
-                : 'hover:bg-white/50 text-gray-700 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white shadow-lg' 
+                : 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }
             `}
           >
             <div className={`flex items-center ${collapsed ? '' : 'space-x-3'}`}>
-              <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'} ${active ? 'text-white' : 'text-gray-600'}`} />
+              <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'} ${active ? 'text-white' : ''}`} />
               {!collapsed && (
                 <span className="font-medium">{item.label}</span>
               )}
@@ -230,12 +230,12 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           transition-all duration-200 group relative
           ${depth > 0 && !collapsed ? 'text-sm' : ''}
           ${isActive 
-            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg' 
-            : 'hover:bg-white/50 text-gray-700 hover:text-gray-900'
+            ? 'bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white shadow-lg' 
+            : 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }
         `}
       >
-        <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
+        <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'} ${location.pathname === item.path ? 'text-white' : ''}`} />
         {!collapsed && (
           <span className="font-medium">{item.label}</span>
         )}
@@ -263,30 +263,29 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={`
           fixed top-0 left-0 h-full z-40
-          bg-white/80 backdrop-blur-xl border-r border-gray-200/50
+          bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50
           shadow-xl
         `}
       >
         {/* Header */}
-        <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-4 border-b border-gray-200/50`}>
+        <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-4 border-b border-gray-200/50 dark:border-gray-700/50`}>
           {!collapsed && (
             <motion.h1 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-xl font-bold bg-gradient-to-r from-orange-500 to-blue-600 
-                bg-clip-text text-transparent"
+              className="text-xl font-bold classboom-gradient-text"
             >
               ClassBoom
             </motion.h1>
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
           >
             {collapsed ? (
-              <HiMenuAlt2 className="w-6 h-6 text-gray-600" />
+              <HiMenuAlt2 className="w-6 h-6" />
             ) : (
-              <HiX className="w-5 h-5 text-gray-600" />
+              <HiX className="w-5 h-5" />
             )}
           </button>
         </div>
@@ -305,7 +304,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onToggle}
-            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 z-30 md:hidden"
           />
         )}
       </AnimatePresence>

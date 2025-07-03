@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../../auth/context/AuthContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { StudentService } from '../../students/services/studentService';
@@ -26,10 +27,7 @@ export function ModernDashboard() {
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
-  const [theme, setTheme] = useState({
-    primary: '#FF6B35',
-    secondary: '#4169E1',
-  });
+  const { currentTheme } = useTheme();
   const [terminology, setTerminology] = useState({
     student: 'Student',
     students: 'Students',
@@ -54,13 +52,8 @@ export function ModernDashboard() {
   }, []);
   
   const loadTheme = async () => {
-    if (schoolInfo?.settings) {
-      if (schoolInfo.settings.theme) {
-        setTheme(schoolInfo.settings.theme);
-      }
-      if (schoolInfo.settings.terminology) {
-        setTerminology(schoolInfo.settings.terminology);
-      }
+    if (schoolInfo?.settings?.terminology) {
+      setTerminology(schoolInfo.settings.terminology);
     }
   };
 
@@ -80,7 +73,7 @@ export function ModernDashboard() {
       label: terminology.students, 
       value: loading ? '...' : studentCount.toString(), 
       color: 'from-blue-500 to-blue-600',
-      icon: <HiOutlineUserGroup className="w-5 h-5 text-blue-600" />,
+      icon: <HiOutlineUserGroup className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
       trend: { value: 12, isPositive: true },
       onClick: () => navigate('/students')
     },
@@ -88,20 +81,20 @@ export function ModernDashboard() {
       label: terminology.teachers, 
       value: '0', 
       color: 'from-green-500 to-green-600',
-      icon: <HiOutlineAcademicCap className="w-5 h-5 text-green-600" />,
+      icon: <HiOutlineAcademicCap className="w-5 h-5 text-green-600 dark:text-green-400" />,
       trend: { value: 5, isPositive: true }
     },
     { 
       label: `Active ${terminology.classes}`, 
       value: '0', 
       color: 'from-purple-500 to-purple-600',
-      icon: <HiOutlineClipboardList className="w-5 h-5 text-purple-600" />
+      icon: <HiOutlineClipboardList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
     },
     { 
       label: 'Revenue This Month', 
       value: '$0', 
       color: 'from-orange-500 to-orange-600',
-      icon: <HiOutlineCurrencyDollar className="w-5 h-5 text-orange-600" />,
+      icon: <HiOutlineCurrencyDollar className="w-5 h-5 text-orange-600 dark:text-orange-400" />,
       trend: { value: 8, isPositive: false }
     },
   ];
@@ -111,7 +104,7 @@ export function ModernDashboard() {
       label: `Add ${terminology.student}`, 
       description: 'Register a new student',
       icon: <HiOutlineUserAdd />,
-      color: { primary: theme.primary, secondary: '#ff8c5a' },
+      color: { primary: currentTheme.primary, secondary: '#ff8c5a' },
       action: () => setShowAddStudentModal(true),
       shortcut: '⌘+S'
     },
@@ -144,7 +137,7 @@ export function ModernDashboard() {
   return (
     <div>
       {/* Confetti Animation */}
-      {showConfetti && <Confetti primaryColor={theme.primary} secondaryColor={theme.secondary} />}
+      {showConfetti && <Confetti primaryColor={currentTheme.primary} secondaryColor={currentTheme.secondary} />}
       
       {/* Welcome Section with Modern Design */}
       <motion.div
@@ -152,20 +145,19 @@ export function ModernDashboard() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-2">
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                 Welcome back{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}! 👋
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-600 dark:text-gray-400">
                 Here's what's happening at {schoolInfo?.name || 'your institution'} today
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-500">Current Plan</p>
-              <p className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-blue-600 
-                bg-clip-text text-transparent">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+              <p className="text-2xl font-bold classboom-gradient-text">
                 {schoolInfo?.subscription_plan || 'Trial'} Plan
               </p>
             </div>
@@ -191,7 +183,7 @@ export function ModernDashboard() {
         transition={{ delay: 0.4 }}
         className="mb-8"
       >
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {quickActions.map((action, index) => (
             <QuickActionCard
@@ -209,9 +201,9 @@ export function ModernDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700"
       >
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h3>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h3>
         
         {/* Activity Timeline */}
         <div className="space-y-4">
@@ -221,22 +213,22 @@ export function ModernDashboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.7 + i * 0.1 }}
-              className="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-classboom-primary to-classboom-primary/80 
                   flex items-center justify-center text-white font-semibold text-sm">
                   U{i + 1}
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-900 dark:text-gray-100">
                   <span className="font-medium">User {i + 1}</span> added a new student
                 </p>
-                <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 hours ago</p>
               </div>
               <div className="flex-shrink-0">
-                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
                   Student
                 </span>
               </div>
@@ -244,7 +236,7 @@ export function ModernDashboard() {
           ))}
         </div>
 
-        <button className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-900 
+        <button className="w-full mt-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 
           transition-colors text-center">
           View all activity →
         </button>

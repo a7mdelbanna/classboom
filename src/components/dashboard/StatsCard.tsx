@@ -55,7 +55,7 @@ export function StatsCard({
       whileHover={{ y: -5, scale: 1.02 }}
       onClick={onClick}
       className={`
-        relative overflow-hidden bg-white rounded-2xl shadow-lg border border-gray-100
+        relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700
         p-6 cursor-pointer group transition-all duration-300
         hover:shadow-2xl
       `}
@@ -79,7 +79,7 @@ export function StatsCard({
                 {icon}
               </div>
             )}
-            <h3 className="text-sm font-medium text-gray-600">{label}</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</h3>
           </div>
           
           {/* Colored Dot Indicator */}
@@ -96,7 +96,7 @@ export function StatsCard({
             key={displayValue}
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="text-3xl font-bold text-gray-900"
+            className="text-3xl font-bold text-gray-900 dark:text-white"
           >
             {typeof value === 'string' && isNaN(parseInt(value)) ? value : displayValue}
           </motion.p>

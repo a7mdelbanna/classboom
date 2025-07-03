@@ -34,7 +34,7 @@ export function QuickActionCard({
       className="relative group w-full text-left overflow-hidden"
     >
       {/* Card Background */}
-      <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700
         transition-all duration-300 group-hover:shadow-2xl">
         
         {/* Gradient Background on Hover */}
@@ -78,27 +78,27 @@ export function QuickActionCard({
           </motion.div>
 
           {/* Text */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 flex items-center justify-between">
             {label}
             <motion.div
               initial={{ x: -10, opacity: 0 }}
               whileHover={{ x: 0, opacity: 1 }}
-              className="text-gray-400"
+              className="text-gray-400 dark:text-gray-500"
             >
               <HiArrowRight className="w-5 h-5" />
             </motion.div>
           </h3>
           
           {description && (
-            <p className="text-sm text-gray-600">{description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
           )}
 
           {/* Keyboard Shortcut */}
           {shortcut && (
             <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100
               transition-opacity duration-300">
-              <kbd className="px-2 py-1 text-xs bg-gray-100 border border-gray-200 
-                rounded text-gray-600 font-mono">
+              <kbd className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 
+                rounded text-gray-600 dark:text-gray-400 font-mono">
                 {shortcut}
               </kbd>
             </div>

@@ -36,6 +36,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, schoolName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updateSchoolSettings: (updates: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,7 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: school.name,
           subscription_plan: school.subscription_plan || 'trial',
           subscription_status: school.subscription_status || 'active',
-          trial_ends_at: school.trial_ends_at
+          trial_ends_at: school.trial_ends_at,
+          settings: school.settings
         });
         
         // Update user metadata with school_id if not already there
@@ -115,7 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: newSchool.name,
             subscription_plan: 'trial',
             subscription_status: 'active',
-            trial_ends_at: newSchool.trial_ends_at
+            trial_ends_at: newSchool.trial_ends_at,
+            settings: newSchool.settings
           });
           
           // Update user metadata with school_id for faster access
@@ -184,7 +187,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: existingSchool.name,
             subscription_plan: existingSchool.subscription_plan || 'trial',
             subscription_status: existingSchool.subscription_status || 'active',
-            trial_ends_at: existingSchool.trial_ends_at
+            trial_ends_at: existingSchool.trial_ends_at,
+            settings: existingSchool.settings
           });
         } else {
           console.log('Creating school manually...');
@@ -209,7 +213,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name: newSchool.name,
               subscription_plan: 'trial',
               subscription_status: 'active',
-              trial_ends_at: newSchool.trial_ends_at
+              trial_ends_at: newSchool.trial_ends_at,
+              settings: newSchool.settings
             });
             
             // Update user metadata with school_id
@@ -240,6 +245,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  const updateSchoolSettings = async (updates: any) => {
+    if (!schoolInfo?.id) return;
+    
+    try {
+      // Get current settings first
+      const { data: currentSchool, error: fetchError } = await supabase
+        .from('schools')
+        .select('settings')
+        .eq('id', schoolInfo.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // Merge with existing settings
+      const currentSettings = currentSchool?.settings || {};
+      const newSettings = { ...currentSettings, ...updates };
+      
+      // Update the database
+      const { error: updateError } = await supabase
+        .from('schools')
+        .update({ settings: newSettings })
+        .eq('id', schoolInfo.id);
+      
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setSchoolInfo(prev => prev ? { ...prev, settings: newSettings } : null);
+    } catch (err) {
+      console.error('Error updating school settings:', err);
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -250,7 +288,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
-      resetPassword
+      resetPassword,
+      updateSchoolSettings
     }}>
       {children}
     </AuthContext.Provider>
