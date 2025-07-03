@@ -81,6 +81,7 @@ export interface ParentInfo {
 }
 
 export interface CreateStudentInput {
+  student_code?: string; // Auto-generated if not provided
   first_name: string;
   last_name: string;
   full_name?: string; // Auto-generated from first_name + last_name if not provided

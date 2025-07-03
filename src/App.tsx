@@ -20,10 +20,10 @@ import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDash
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <ThemeProvider>
-          <Router>
+    <Router>
+      <ToastProvider>
+        <AuthProvider>
+          <ThemeProvider>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<EnhancedLoginPage />} />
@@ -75,10 +75,10 @@ function App() {
           
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
-          </Router>
-        </ThemeProvider>
-      </AuthProvider>
-    </ToastProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </Router>
   );
 }
 

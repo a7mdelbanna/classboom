@@ -1,29 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../../../context/ToastContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { 
   HiOutlineAcademicCap, 
-  HiOutlineUserGroup, 
   HiOutlineUsers,
   HiOutlineOfficeBuilding,
   HiOutlineArrowLeft,
   HiOutlineEye,
-  HiOutlineEyeOff
+  HiOutlineEyeOff,
+  HiOutlineMoon,
+  HiOutlineSun
 } from 'react-icons/hi';
 
 type LoginRole = 'school' | 'student' | 'parent';
 
 export function EnhancedLoginPage() {
-  const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, user, userRole } = useAuth();
   const { showToast } = useToast();
+  const { isDarkMode, toggleDarkMode } = useTheme();
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<LoginRole | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Redirect authenticated users based on their role
+  useEffect(() => {
+    if (user && userRole) {
+      switch (userRole) {
+        case 'school_owner':
+          navigate('/dashboard');
+          break;
+        case 'student':
+          navigate('/student-portal');
+          break;
+        case 'parent':
+          navigate('/parent-portal');
+          break;
+        case 'teacher':
+          navigate('/teacher-portal');
+          break;
+      }
+    }
+  }, [user, userRole, navigate]);
 
   const roles = [
     {
@@ -63,9 +86,12 @@ export function EnhancedLoginPage() {
     setLoading(true);
     try {
       await signIn(email, password);
-      
-      // The AuthContext will handle role detection and redirect
       showToast('Welcome back!', 'success');
+      
+      // Navigate after a small delay to ensure auth state is updated
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 100);
     } catch (error: any) {
       console.error('Login error:', error);
       
@@ -107,7 +133,21 @@ export function EnhancedLoginPage() {
 
   if (!selectedRole) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 relative">
+        {/* Dark mode toggle */}
+        <button
+          onClick={toggleDarkMode}
+          className="absolute top-4 right-4 p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg
+            hover:shadow-xl transition-shadow duration-200"
+          aria-label="Toggle dark mode"
+        >
+          {isDarkMode ? (
+            <HiOutlineSun className="w-6 h-6 text-yellow-500" />
+          ) : (
+            <HiOutlineMoon className="w-6 h-6 text-gray-700" />
+          )}
+        </button>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -168,7 +208,21 @@ export function EnhancedLoginPage() {
   const roleConfig = roles.find(r => r.id === selectedRole)!;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 relative">
+      {/* Dark mode toggle */}
+      <button
+        onClick={toggleDarkMode}
+        className="absolute top-4 right-4 p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg
+          hover:shadow-xl transition-shadow duration-200"
+        aria-label="Toggle dark mode"
+      >
+        {isDarkMode ? (
+          <HiOutlineSun className="w-6 h-6 text-yellow-500" />
+        ) : (
+          <HiOutlineMoon className="w-6 h-6 text-gray-700" />
+        )}
+      </button>
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

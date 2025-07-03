@@ -14,7 +14,7 @@ export class StudentService {
     // Order by created_at ASC to get the first school created
     const { data: schools, error } = await supabase
       .from('schools')
-      .select('id, created_at')
+      .select('id, created_at, name')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: true })
       .limit(1);
@@ -43,8 +43,28 @@ export class StudentService {
           .select('id')
           .single();
         
-        if (createError || !newSchool) {
-          throw new Error(`Failed to create school: ${createError?.message || 'Unknown error'}`);
+        if (createError) {
+          // Check if it's a unique constraint violation (school already exists)
+          if (createError.code === '23505') {
+            console.log('School was created by another request, fetching it now...');
+            // Try to fetch the school again
+            const { data: existingSchools, error: refetchError } = await supabase
+              .from('schools')
+              .select('id, created_at, name')
+              .eq('owner_id', user.id)
+              .order('created_at', { ascending: true })
+              .limit(1);
+            
+            if (!refetchError && existingSchools && existingSchools.length > 0) {
+              console.log('Found existing school after race condition:', existingSchools[0].id);
+              return existingSchools[0].id;
+            }
+          }
+          throw new Error(`Failed to create school: ${createError.message}`);
+        }
+        
+        if (!newSchool) {
+          throw new Error('Failed to create school: No data returned');
         }
         
         console.log('Successfully created first school:', newSchool.id);
@@ -57,6 +77,7 @@ export class StudentService {
     
     // Always return the oldest school
     const schoolId = schools[0].id;
+    console.log('Using existing school:', schoolId, schools[0].name);
     return schoolId;
   }
 
@@ -138,25 +159,34 @@ export class StudentService {
         studentCode = `${prefix}${timestamp}`;
       }
 
+      // Build full name from first_name and last_name
+      const fullName = `${studentData.first_name} ${studentData.last_name}`.trim();
+
       // Clean up empty strings for optional fields
       const cleanedData = {
-        ...studentData,
+        school_id: schoolId,
+        student_code: studentCode,
+        full_name: fullName,
+        first_name: studentData.first_name,
+        last_name: studentData.last_name,
+        email: studentData.email || null,
+        phone: studentData.phone || null,
         date_of_birth: studentData.date_of_birth || null,
         city: studentData.city || null,
         country: studentData.country || null,
         skill_level: studentData.skill_level || null,
-        notes: studentData.notes || null
-      };
-
-      const newStudent = {
-        ...cleanedData,
-        school_id: schoolId,
-        student_code: studentCode
+        notes: studentData.notes || null,
+        interested_courses: studentData.interested_courses || [],
+        social_media: studentData.social_media || {},
+        communication_preferences: studentData.communication_preferences || {},
+        emergency_contact: studentData.emergency_contact || null,
+        medical_info: studentData.medical_info || {},
+        parent_info: studentData.parent_info || {}
       };
 
       const { data, error } = await supabase
         .from('students')
-        .insert(newStudent)
+        .insert(cleanedData)
         .select()
         .single();
 
@@ -180,8 +210,22 @@ export class StudentService {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
+      // Build full name if first_name or last_name is updated
+      let fullName: string | undefined;
+      if (updates.first_name || updates.last_name) {
+        const { data: currentStudent } = await supabase
+          .from('students')
+          .select('first_name, last_name')
+          .eq('id', id)
+          .single();
+        
+        const firstName = updates.first_name || currentStudent?.first_name || '';
+        const lastName = updates.last_name || currentStudent?.last_name || '';
+        fullName = `${firstName} ${lastName}`.trim();
+      }
+      
       // Clean up empty strings for optional fields
-      const cleanedUpdates = {
+      const cleanedUpdates: any = {
         ...updates,
         date_of_birth: updates.date_of_birth === '' ? null : updates.date_of_birth,
         city: updates.city === '' ? null : updates.city,
@@ -189,6 +233,10 @@ export class StudentService {
         skill_level: updates.skill_level === '' ? null : updates.skill_level,
         notes: updates.notes === '' ? null : updates.notes
       };
+      
+      if (fullName) {
+        cleanedUpdates.full_name = fullName;
+      }
       
       const { data, error } = await supabase
         .from('students')
