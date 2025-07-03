@@ -154,9 +154,21 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
       return (
         <div key={item.id}>
           <button
-            onClick={() => toggleExpanded(item.id)}
+            onClick={() => {
+              if (collapsed) {
+                // When sidebar is collapsed, clicking a parent item should expand the sidebar
+                onToggle();
+                // Also expand the menu item
+                if (!isExpanded) {
+                  toggleExpanded(item.id);
+                }
+              } else {
+                toggleExpanded(item.id);
+              }
+            }}
             className={`
-              w-full flex items-center justify-between px-3 py-2.5 rounded-lg
+              w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} 
+              px-3 py-2.5 rounded-lg
               transition-all duration-200 group relative
               ${active 
                 ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg' 
@@ -164,8 +176,8 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
               }
             `}
           >
-            <div className="flex items-center space-x-3">
-              <item.icon className={`w-5 h-5 ${active ? 'text-white' : 'text-gray-600'}`} />
+            <div className={`flex items-center ${collapsed ? '' : 'space-x-3'}`}>
+              <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'} ${active ? 'text-white' : 'text-gray-600'}`} />
               {!collapsed && (
                 <span className="font-medium">{item.label}</span>
               )}
@@ -181,7 +193,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
             
             {/* Tooltip for collapsed state */}
             {collapsed && (
-              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md 
+              <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md 
                 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                 {item.label}
               </div>
@@ -213,23 +225,24 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
         key={item.id}
         to={item.path || '#'}
         className={({ isActive }) => `
-          flex items-center space-x-3 px-3 py-2.5 rounded-lg
+          flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} 
+          px-3 py-2.5 rounded-lg
           transition-all duration-200 group relative
-          ${depth > 0 ? 'text-sm' : ''}
+          ${depth > 0 && !collapsed ? 'text-sm' : ''}
           ${isActive 
             ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg' 
             : 'hover:bg-white/50 text-gray-700 hover:text-gray-900'
           }
         `}
       >
-        <item.icon className="w-5 h-5" />
+        <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
         {!collapsed && (
           <span className="font-medium">{item.label}</span>
         )}
         
         {/* Tooltip for collapsed state */}
         {collapsed && (
-          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md 
+          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md 
             opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
             {item.label}
           </div>
@@ -255,7 +268,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
         `}
       >
         {/* Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200/50">
+        <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-4 border-b border-gray-200/50`}>
           {!collapsed && (
             <motion.h1 
               initial={{ opacity: 0 }}
@@ -271,7 +284,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
             {collapsed ? (
-              <HiMenuAlt2 className="w-5 h-5 text-gray-600" />
+              <HiMenuAlt2 className="w-6 h-6 text-gray-600" />
             ) : (
               <HiX className="w-5 h-5 text-gray-600" />
             )}
@@ -279,7 +292,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
         </div>
 
         {/* Menu Items */}
-        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-4rem)]">
+        <nav className={`${collapsed ? 'px-2' : 'px-4'} py-4 space-y-2 overflow-y-auto h-[calc(100vh-4rem)]`}>
           {menuItems.map(item => renderMenuItem(item))}
         </nav>
       </motion.aside>
