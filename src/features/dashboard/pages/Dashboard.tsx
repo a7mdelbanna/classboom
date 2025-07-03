@@ -1,18 +1,73 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../../auth/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { StudentService } from '../../students/services/studentService';
+import { Confetti } from '../../../components/Confetti';
+import { supabase } from '../../../lib/supabase';
 
 export function Dashboard() {
   const { user, schoolInfo, userRole, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [studentCount, setStudentCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [theme, setTheme] = useState({
+    primary: '#FF6B35',
+    secondary: '#4169E1',
+  });
+  const [terminology, setTerminology] = useState({
+    student: 'Student',
+    students: 'Students',
+    teacher: 'Teacher',
+    teachers: 'Teachers',
+    class: 'Class',
+    classes: 'Classes',
+  });
+  
+  // Check if setup was just completed
+  useEffect(() => {
+    if (searchParams.get('setup') === 'complete') {
+      setShowConfetti(true);
+      // Remove the query param after showing confetti
+      window.history.replaceState({}, '', '/dashboard');
+      // Stop confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadCounts();
+    loadTheme();
   }, []);
+  
+  const loadTheme = async () => {
+    try {
+      // Load theme from school settings
+      if (schoolInfo?.id) {
+        const { data } = await supabase
+          .from('schools')
+          .select('settings')
+          .eq('id', schoolInfo.id)
+          .single();
+        
+        if (data?.settings) {
+          if (data.settings.theme) {
+            setTheme({
+              primary: data.settings.theme.primary || '#FF6B35',
+              secondary: data.settings.theme.secondary || '#4169E1',
+            });
+          }
+          if (data.settings.terminology) {
+            setTerminology(data.settings.terminology);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading theme:', error);
+    }
+  };
 
   const loadCounts = async () => {
     try {
@@ -31,35 +86,43 @@ export function Dashboard() {
   };
 
   const stats = [
-    { label: 'Students', value: loading ? '...' : studentCount.toString(), color: 'from-blue-500 to-blue-600' },
-    { label: 'Teachers', value: '0', color: 'from-green-500 to-green-600' },
-    { label: 'Active Classes', value: '0', color: 'from-purple-500 to-purple-600' },
+    { label: terminology.students, value: loading ? '...' : studentCount.toString(), color: 'from-blue-500 to-blue-600' },
+    { label: terminology.teachers, value: '0', color: 'from-green-500 to-green-600' },
+    { label: `Active ${terminology.classes}`, value: '0', color: 'from-purple-500 to-purple-600' },
     { label: 'Today\'s Sessions', value: '0', color: 'from-orange-500 to-orange-600' },
   ];
 
   const quickActions = [
-    { label: 'Add Student', icon: '👨‍🎓', path: '/students/new' },
-    { label: 'View Students', icon: '📋', path: '/students' },
-    { label: 'Create Class', icon: '📚', path: '/classes/new' },
+    { label: `Add ${terminology.student}`, icon: '👨‍🎓', path: '/students/new' },
+    { label: `View ${terminology.students}`, icon: '📋', path: '/students' },
+    { label: `Create ${terminology.class}`, icon: '📚', path: '/classes/new' },
     { label: 'View Reports', icon: '📊', path: '/reports' },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Confetti Animation */}
+      {showConfetti && <Confetti primaryColor={theme.primary} secondaryColor={theme.secondary} />}
+      
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header 
+        className="shadow-sm border-b border-gray-200"
+        style={{ 
+          background: `linear-gradient(to right, ${theme.primary}, ${theme.secondary})` 
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">ClassBoom</h1>
+              <h1 className="text-2xl font-bold text-white">ClassBoom</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-white/90">
                 {user?.email}
               </div>
               <button
                 onClick={handleSignOut}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-sm text-white/80 hover:text-white transition-colors"
               >
                 Sign Out
               </button>
@@ -77,7 +140,7 @@ export function Dashboard() {
           className="mb-8"
         >
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}!
+            Welcome back{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}!
           </h2>
           <p className="text-gray-600">
             {schoolInfo?.name || 'Your School'} • {schoolInfo?.subscription_plan || 'Trial'} Plan
@@ -121,7 +184,18 @@ export function Dashboard() {
               <button
                 key={action.label}
                 onClick={() => navigate(action.path)}
-                className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200"
+                className="flex flex-col items-center p-4 rounded-lg border border-gray-200 transition-all duration-200"
+                style={{
+                  '--theme-color': theme.primary,
+                } as any}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = theme.primary;
+                  e.currentTarget.style.backgroundColor = theme.primary + '10';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
                 <span className="text-3xl mb-2">{action.icon}</span>
                 <span className="text-sm font-medium text-gray-700">{action.label}</span>
@@ -140,7 +214,7 @@ export function Dashboard() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
           <div className="text-center py-8 text-gray-500">
             <p>No recent activity yet.</p>
-            <p className="text-sm mt-2">Start by adding students or creating classes!</p>
+            <p className="text-sm mt-2">Start by adding {terminology.students.toLowerCase()} or creating {terminology.classes.toLowerCase()}!</p>
           </div>
         </motion.div>
 

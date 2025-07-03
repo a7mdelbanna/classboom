@@ -123,9 +123,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, schoolName?: string) => {
+    // Split full name into first and last name
+    const nameParts = fullName.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
     const metadata = schoolName 
-      ? { full_name: fullName, school_name: schoolName }
-      : { full_name: fullName };
+      ? { full_name: fullName, first_name: firstName, last_name: lastName, school_name: schoolName }
+      : { full_name: fullName, first_name: firstName, last_name: lastName };
 
     const { error, data } = await supabase.auth.signUp({
       email,

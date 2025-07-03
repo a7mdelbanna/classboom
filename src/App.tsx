@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './features/auth/context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { LoginPage } from './features/auth/pages/LoginPage';
 import { SignupPage } from './features/auth/pages/SignupPage';
-import { TrialWizard } from './features/auth/pages/TrialWizard';
+import { SetupWizard } from './features/auth/pages/SetupWizard';
 import { DemoLogin } from './features/auth/pages/DemoLogin';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Dashboard } from './features/dashboard/pages/Dashboard';
@@ -12,15 +13,16 @@ import { StudentProfile } from './features/students/pages/StudentProfile';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/demo" element={<DemoLogin />} />
           <Route path="/signup/trial-wizard" element={
             <ProtectedRoute>
-              <TrialWizard />
+              <SetupWizard />
             </ProtectedRoute>
           } />
           <Route path="/dashboard" element={
@@ -55,6 +57,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </ToastProvider>
   );
 }
 
