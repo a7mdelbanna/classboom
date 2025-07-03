@@ -10,54 +10,53 @@ export class StudentService {
       throw new Error('No authenticated user');
     }
 
-    // Try to get school_id from user metadata first (might not be there for new users)
-    let schoolId = user.user_metadata?.school_id;
+    // CRITICAL FIX: Always get the OLDEST school to prevent duplicates
+    // Order by created_at ASC to get the first school created
+    const { data: schools, error } = await supabase
+      .from('schools')
+      .select('id, created_at')
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: true })
+      .limit(1);
     
-    if (!schoolId) {
-      // Primary method: get from schools table
-      const { data: schools, error } = await supabase
-        .from('schools')
-        .select('id')
-        .eq('owner_id', user.id)
-        .single();
+    if (error) {
+      console.error('Error fetching school:', error);
+      throw new Error(`Failed to fetch school: ${error.message}`);
+    }
+    
+    if (!schools || schools.length === 0) {
+      // Only create if truly no schools exist
+      const schoolName = user.user_metadata?.school_name || 'My School';
+      console.log('No schools found, creating first school for user...');
       
-      if (error || !schools) {
-        // Last resort: check if user has school_name and create school
-        const schoolName = user.user_metadata?.school_name;
-        if (schoolName) {
-          console.log('Creating missing school for user...');
-          try {
-            const { data: newSchool, error: createError } = await supabase
-              .from('schools')
-              .insert({
-                name: schoolName,
-                owner_id: user.id,
-                subscription_plan: 'trial',
-                subscription_status: 'active',
-                trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-                settings: user.user_metadata?.school_settings || {}
-              })
-              .select('id')
-              .single();
-            
-            if (createError || !newSchool) {
-              throw new Error(`Failed to create school: ${createError?.message || 'Unknown error'}`);
-            }
-            
-            schoolId = newSchool.id;
-            console.log('Successfully created school:', schoolId);
-          } catch (createErr) {
-            console.error('Error creating school:', createErr);
-            throw new Error('No school found for user and failed to create one');
-          }
-        } else {
-          throw new Error('No school found for user');
+      try {
+        const { data: newSchool, error: createError } = await supabase
+          .from('schools')
+          .insert({
+            name: schoolName,
+            owner_id: user.id,
+            subscription_plan: 'trial',
+            subscription_status: 'active',
+            trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            settings: user.user_metadata?.school_settings || {}
+          })
+          .select('id')
+          .single();
+        
+        if (createError || !newSchool) {
+          throw new Error(`Failed to create school: ${createError?.message || 'Unknown error'}`);
         }
-      } else {
-        schoolId = schools.id;
+        
+        console.log('Successfully created first school:', newSchool.id);
+        return newSchool.id;
+      } catch (createErr) {
+        console.error('Error creating school:', createErr);
+        throw new Error('No school found for user and failed to create one');
       }
     }
     
+    // Always return the oldest school
+    const schoolId = schools[0].id;
     return schoolId;
   }
 

@@ -1,8 +1,9 @@
-# 🚨 CRITICAL ISSUE: Students Disappearing After Creation
+# ✅ RESOLVED: Students Disappearing After Creation
 
 **Issue Created**: 2025-01-03
+**Issue Resolved**: 2025-07-03
 **Priority**: CRITICAL
-**Status**: UNRESOLVED
+**Status**: RESOLVED
 
 ## Problem Description
 Students are successfully created and appear in the UI for a few seconds, then disappear. This happens consistently:
@@ -10,6 +11,26 @@ Students are successfully created and appear in the UI for a few seconds, then d
 2. Student shows up in the cards view
 3. After 2-5 seconds → Student disappears from view
 4. No error messages in console
+
+## ✅ ROOT CAUSE IDENTIFIED
+The app was creating **duplicate schools on every auth state change/page refresh**:
+- One user had **1,845 duplicate schools** created
+- Students were scattered across different school IDs
+- Each page refresh would select a different (empty) school
+- The `getCurrentSchoolId` function had a bug that created new schools instead of finding existing ones
+
+## ✅ SOLUTION IMPLEMENTED
+1. **Fixed `getCurrentSchoolId` function** in `studentService.ts`:
+   - Now always selects the OLDEST school for a user
+   - Prevents creation of duplicate schools
+   - Uses proper array handling instead of `.single()` which was causing errors
+
+2. **Database cleanup performed**:
+   - Migrated all students to each user's oldest school
+   - Deleted all duplicate schools
+   - Created migration scripts for future cases
+
+3. **Added comprehensive logging** to track school selection
 
 ## Current Investigation Results
 

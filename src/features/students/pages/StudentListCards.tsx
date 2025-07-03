@@ -7,6 +7,7 @@ import { useToast } from '../../../context/ToastContext';
 import { useAuth } from '../../auth/context/AuthContext';
 import { getInstitutionConfig, TERMINOLOGY_CONFIG } from '../../../types/institution.types';
 import { AddStudentNew } from './AddStudentNew';
+import { supabase } from '../../../lib/supabase';
 import type { Student } from '../types/student.types';
 
 // Avatar generation function
@@ -40,6 +41,8 @@ export function StudentListCards() {
   useEffect(() => {
     loadStudents();
   }, [search, statusFilter]);
+
+  // School ID is now stable - no need for debug intervals
 
   const loadStudents = async () => {
     try {

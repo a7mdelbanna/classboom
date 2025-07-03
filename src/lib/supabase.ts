@@ -16,6 +16,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+
 // Helper to get current user's school information
 export async function getCurrentUserSchool() {
   const { data: { user } } = await supabase.auth.getUser();
