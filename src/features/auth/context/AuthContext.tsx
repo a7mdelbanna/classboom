@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { type User, type Session } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase';
 
+export type UserRole = 'school_owner' | 'teacher' | 'student' | 'parent' | null;
+
 interface SchoolInfo {
   id: string;
   name: string;
@@ -26,12 +28,30 @@ interface SchoolInfo {
   };
 }
 
+// Additional context for students and parents
+interface StudentInfo {
+  id: string;
+  student_code: string;
+  first_name: string;
+  last_name: string;
+  school_id: string;
+}
+
+interface ParentInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  children: StudentInfo[];
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   schoolInfo: SchoolInfo | null;
-  userRole: string | null;
+  studentInfo: StudentInfo | null;
+  parentInfo: ParentInfo | null;
+  userRole: UserRole;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string, schoolName?: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -46,7 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
+  const [parentInfo, setParentInfo] = useState<ParentInfo | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -71,14 +93,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserMetadata = async (user: User) => {
     try {
-      // Try to get school from database
-      const { data: school, error } = await supabase
+      // Reset previous role data
+      setSchoolInfo(null);
+      setStudentInfo(null);
+      setParentInfo(null);
+      setUserRole(null);
+
+      // 1. Check if user is a school owner
+      const { data: school, error: schoolError } = await supabase
         .from('schools')
         .select('*')
         .eq('owner_id', user.id)
         .single();
       
-      if (school && !error) {
+      if (school && !schoolError) {
         setUserRole('school_owner');
         setSchoolInfo({
           id: school.id,
@@ -95,8 +123,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data: { ...user.user_metadata, school_id: school.id }
           });
         }
-      } else if (user.user_metadata?.school_name) {
-        // No school found but user has school_name - create one
+        return;
+      }
+      
+      // 2. Check if user is a student
+      const { data: student, error: studentError } = await supabase
+        .from('students')
+        .select('id, student_code, first_name, last_name, school_id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (student && !studentError) {
+        setUserRole('student');
+        setStudentInfo({
+          id: student.id,
+          student_code: student.student_code,
+          first_name: student.first_name,
+          last_name: student.last_name,
+          school_id: student.school_id
+        });
+        return;
+      }
+      
+      // 3. Check if user is a parent
+      const { data: parentAccount, error: parentError } = await supabase
+        .from('parent_accounts')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          parent_student_relationships (
+            student_id,
+            students (
+              id,
+              student_code,
+              first_name,
+              last_name,
+              school_id
+            )
+          )
+        `)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (parentAccount && !parentError) {
+        setUserRole('parent');
+        const children = parentAccount.parent_student_relationships?.map((rel: any) => ({
+          id: rel.students.id,
+          student_code: rel.students.student_code,
+          first_name: rel.students.first_name,
+          last_name: rel.students.last_name,
+          school_id: rel.students.school_id
+        })) || [];
+        
+        setParentInfo({
+          id: parentAccount.id,
+          first_name: parentAccount.first_name,
+          last_name: parentAccount.last_name,
+          children
+        });
+        return;
+      }
+      
+      // 4. Check if user has school_name in metadata (new school owner signup)
+      if (user.user_metadata?.school_name) {
         console.log('Creating school during metadata load...');
         const { data: newSchool } = await supabase
           .from('schools')
@@ -127,6 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
       }
+      
+      // TODO: Add teacher role check when teacher table is created
+      
     } catch (err) {
       console.error('Error loading user metadata:', err);
     }
@@ -235,6 +328,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setSchoolInfo(null);
+    setStudentInfo(null);
+    setParentInfo(null);
     setUserRole(null);
   };
 
@@ -284,6 +379,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       loading,
       schoolInfo,
+      studentInfo,
+      parentInfo,
       userRole,
       signIn,
       signUp,

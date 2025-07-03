@@ -3,16 +3,20 @@ import { AuthProvider } from './features/auth/context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoginPage } from './features/auth/pages/LoginPage';
+import { EnhancedLoginPage } from './features/auth/pages/EnhancedLoginPage';
 import { SignupPage } from './features/auth/pages/SignupPage';
 import { SetupWizard } from './features/auth/pages/SetupWizard';
 import { DemoLogin } from './features/auth/pages/DemoLogin';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { RoleProtectedRoute } from './components/RoleProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ModernDashboard } from './features/dashboard/pages/ModernDashboard';
 import { StudentListCards } from './features/students/pages/StudentListCards';
 import { AddStudentNew } from './features/students/pages/AddStudentNew';
 import { StudentProfile } from './features/students/pages/StudentProfile';
 import { SettingsPage } from './features/settings/pages/SettingsPage';
+import { StudentPortalDashboard } from './features/students/pages/StudentPortalDashboard';
+import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
 
 function App() {
   return (
@@ -21,9 +25,13 @@ function App() {
         <ThemeProvider>
           <Router>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          {/* Public Routes */}
+          <Route path="/login" element={<EnhancedLoginPage />} />
+          <Route path="/login-legacy" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/demo" element={<DemoLogin />} />
+          
+          {/* Protected Setup Route */}
           <Route path="/signup/trial-wizard" element={
             <ProtectedRoute>
               <SetupWizard />
@@ -50,6 +58,20 @@ function App() {
             <Route path="/analytics" element={<div>Analytics Page</div>} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
+          
+          {/* Student Portal Routes */}
+          <Route path="/student-portal" element={
+            <RoleProtectedRoute allowedRoles={['student']}>
+              <StudentPortalDashboard />
+            </RoleProtectedRoute>
+          } />
+          
+          {/* Parent Portal Routes */}
+          <Route path="/parent-portal" element={
+            <RoleProtectedRoute allowedRoles={['parent']}>
+              <ParentPortalDashboard />
+            </RoleProtectedRoute>
+          } />
           
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>

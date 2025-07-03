@@ -4,6 +4,7 @@ export interface Student {
   student_code: string;
   first_name: string;
   last_name: string;
+  full_name?: string; // Generated column
   email: string | null;
   phone: string | null;
   date_of_birth: string | null;
@@ -20,6 +21,12 @@ export interface Student {
   status: 'active' | 'inactive' | 'graduated' | 'dropped';
   notes: string | null;
   avatar_url: string | null;
+  // Authentication fields
+  user_id: string | null;
+  can_login: boolean;
+  invite_token: string | null;
+  invite_sent_at: string | null;
+  account_created_at: string | null;
   created_at: string;
   updated_at: string;
 }
