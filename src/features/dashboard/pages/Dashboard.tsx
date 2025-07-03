@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { StudentService } from '../../students/services/studentService';
 import { Confetti } from '../../../components/Confetti';
 import { supabase } from '../../../lib/supabase';
+import { Modal } from '../../../components/Modal';
+import { AddStudentNew } from '../../students/pages/AddStudentNew';
 
 export function Dashboard() {
   const { user, schoolInfo, userRole, signOut } = useAuth();
@@ -13,6 +15,7 @@ export function Dashboard() {
   const [studentCount, setStudentCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [theme, setTheme] = useState({
     primary: '#FF6B35',
     secondary: '#4169E1',
@@ -93,10 +96,10 @@ export function Dashboard() {
   ];
 
   const quickActions = [
-    { label: `Add ${terminology.student}`, icon: '👨‍🎓', path: '/students/new' },
-    { label: `View ${terminology.students}`, icon: '📋', path: '/students' },
-    { label: `Create ${terminology.class}`, icon: '📚', path: '/classes/new' },
-    { label: 'View Reports', icon: '📊', path: '/reports' },
+    { label: `Add ${terminology.student}`, icon: '👨‍🎓', action: () => setShowAddStudentModal(true) },
+    { label: `View ${terminology.students}`, icon: '📋', action: () => navigate('/students') },
+    { label: `Create ${terminology.class}`, icon: '📚', action: () => navigate('/classes/new') },
+    { label: 'View Reports', icon: '📊', action: () => navigate('/reports') },
   ];
 
   return (
@@ -183,7 +186,7 @@ export function Dashboard() {
             {quickActions.map((action) => (
               <button
                 key={action.label}
-                onClick={() => navigate(action.path)}
+                onClick={action.action}
                 className="flex flex-col items-center p-4 rounded-lg border border-gray-200 transition-all duration-200"
                 style={{
                   '--theme-color': theme.primary,
@@ -236,6 +239,23 @@ export function Dashboard() {
           </motion.div>
         )}
       </main>
+
+      {/* Add Student Modal */}
+      <Modal
+        isOpen={showAddStudentModal}
+        onClose={() => setShowAddStudentModal(false)}
+        title={`Add New ${terminology.student}`}
+        size="xl"
+      >
+        <AddStudentNew 
+          onSuccess={() => {
+            setShowAddStudentModal(false);
+            loadCounts(); // Refresh student count
+          }}
+          onCancel={() => setShowAddStudentModal(false)}
+          isModal={true}
+        />
+      </Modal>
     </div>
   );
 }
