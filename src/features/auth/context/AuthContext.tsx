@@ -8,6 +8,22 @@ interface SchoolInfo {
   subscription_plan: string;
   subscription_status: string;
   trial_ends_at: string | null;
+  settings?: {
+    theme?: {
+      primary: string;
+      secondary: string;
+    };
+    terminology?: {
+      student: string;
+      students: string;
+      teacher: string;
+      teachers: string;
+      class: string;
+      classes: string;
+    };
+    institution_type?: string;
+    [key: string]: any;
+  };
 }
 
 interface AuthContextType {

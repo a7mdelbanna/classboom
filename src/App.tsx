@@ -6,7 +6,8 @@ import { SignupPage } from './features/auth/pages/SignupPage';
 import { SetupWizard } from './features/auth/pages/SetupWizard';
 import { DemoLogin } from './features/auth/pages/DemoLogin';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { Dashboard } from './features/dashboard/pages/Dashboard';
+import { DashboardLayout } from './components/layout/DashboardLayout';
+import { ModernDashboard } from './features/dashboard/pages/ModernDashboard';
 import { StudentListCards } from './features/students/pages/StudentListCards';
 import { AddStudentNew } from './features/students/pages/AddStudentNew';
 import { StudentProfile } from './features/students/pages/StudentProfile';
@@ -25,33 +26,27 @@ function App() {
               <SetupWizard />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard" element={
+          {/* Protected Routes with Dashboard Layout */}
+          <Route element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardLayout />
             </ProtectedRoute>
-          } />
-          
-          {/* Student Routes */}
-          <Route path="/students" element={
-            <ProtectedRoute>
-              <StudentListCards />
-            </ProtectedRoute>
-          } />
-          <Route path="/students/new" element={
-            <ProtectedRoute>
-              <AddStudentNew />
-            </ProtectedRoute>
-          } />
-          <Route path="/students/:id" element={
-            <ProtectedRoute>
-              <StudentProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/students/:id/edit" element={
-            <ProtectedRoute>
-              <AddStudentNew />
-            </ProtectedRoute>
-          } />
+          }>
+            <Route path="/dashboard" element={<ModernDashboard />} />
+            
+            {/* Student Routes */}
+            <Route path="/students" element={<StudentListCards />} />
+            <Route path="/students/new" element={<AddStudentNew />} />
+            <Route path="/students/:id" element={<StudentProfile />} />
+            <Route path="/students/:id/edit" element={<AddStudentNew />} />
+            
+            {/* Placeholder routes for other sections */}
+            <Route path="/classes" element={<div>Classes Page</div>} />
+            <Route path="/classes/new" element={<div>Create Class Page</div>} />
+            <Route path="/payments" element={<div>Payments Page</div>} />
+            <Route path="/analytics" element={<div>Analytics Page</div>} />
+            <Route path="/settings" element={<div>Settings Page</div>} />
+          </Route>
           
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
