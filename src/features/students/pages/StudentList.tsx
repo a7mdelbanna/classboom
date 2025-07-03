@@ -76,7 +76,7 @@ export function StudentList() {
             <div className="md:col-span-2">
               <input
                 type="text"
-                placeholder="Search by student code or notes..."
+                placeholder="Search by name, email, or student code..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -171,19 +171,19 @@ export function StudentList() {
                               <img
                                 className="h-10 w-10 rounded-full"
                                 src={student.avatar_url}
-                                alt={student.full_name}
+                                alt={`${student.first_name} ${student.last_name}`}
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                                 <span className="text-orange-600 font-medium">
-                                  {student.full_name?.charAt(0) || '?'}
+                                  {student.first_name?.charAt(0) || '?'}
                                 </span>
                               </div>
                             )}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {student.full_name || 'Unknown'}
+                              {`${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unknown'}
                             </div>
                             <div className="text-sm text-gray-500">{student.email}</div>
                           </div>
@@ -193,7 +193,7 @@ export function StudentList() {
                         <div className="text-sm font-mono text-gray-900">{student.student_code}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{student.grade_level || '-'}</div>
+                        <div className="text-sm text-gray-900">{student.skill_level || '-'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{student.phone || '-'}</div>

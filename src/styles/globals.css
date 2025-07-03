@@ -97,6 +97,25 @@
            focus:ring-ring focus:ring-offset-2;
   }
 
+  /* Student card hover effects */
+  .group:hover .group-hover\:opacity-100 {
+    opacity: 1 !important;
+  }
+  
+  .group:hover .group-hover\:scale-100 {
+    transform: scale(1) !important;
+  }
+  
+  /* Mobile touch support */
+  @media (hover: none) {
+    .md\:opacity-0 {
+      opacity: 1 !important;
+    }
+    .md\:scale-90 {
+      transform: scale(1) !important;
+    }
+  }
+
   .classboom-gradient-text {
     @apply bg-gradient-to-r from-classboom-primary-500 to-classboom-secondary-500 
            bg-clip-text text-transparent;

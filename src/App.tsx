@@ -7,8 +7,8 @@ import { SetupWizard } from './features/auth/pages/SetupWizard';
 import { DemoLogin } from './features/auth/pages/DemoLogin';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Dashboard } from './features/dashboard/pages/Dashboard';
-import { StudentList } from './features/students/pages/StudentList';
-import { AddStudent } from './features/students/pages/AddStudent';
+import { StudentListCards } from './features/students/pages/StudentListCards';
+import { AddStudentNew } from './features/students/pages/AddStudentNew';
 import { StudentProfile } from './features/students/pages/StudentProfile';
 
 function App() {
@@ -34,12 +34,12 @@ function App() {
           {/* Student Routes */}
           <Route path="/students" element={
             <ProtectedRoute>
-              <StudentList />
+              <StudentListCards />
             </ProtectedRoute>
           } />
           <Route path="/students/new" element={
             <ProtectedRoute>
-              <AddStudent />
+              <AddStudentNew />
             </ProtectedRoute>
           } />
           <Route path="/students/:id" element={
@@ -49,7 +49,7 @@ function App() {
           } />
           <Route path="/students/:id/edit" element={
             <ProtectedRoute>
-              <AddStudent />
+              <AddStudentNew />
             </ProtectedRoute>
           } />
           

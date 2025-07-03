@@ -2,11 +2,17 @@ export interface Student {
   id: string;
   school_id: string;
   student_code: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
   email: string | null;
   phone: string | null;
   date_of_birth: string | null;
-  grade_level: string | null;
+  country: string | null;
+  city: string | null;
+  skill_level: string | null;
+  interested_courses: string[];
+  social_media: SocialMediaContacts | null;
+  communication_preferences: CommunicationPreferences | null;
   emergency_contact: EmergencyContact | null;
   medical_info: MedicalInfo | null;
   parent_info: ParentInfo | null;
@@ -34,6 +40,28 @@ export interface MedicalInfo {
   doctor_phone?: string;
 }
 
+// Social Media Contacts
+export interface SocialMediaContacts {
+  whatsapp?: string;
+  instagram?: string;
+  telegram?: string;
+  vk?: string;
+  facebook?: string;
+  twitter?: string;
+  linkedin?: string;
+  wechat?: string;
+  line?: string;
+  viber?: string;
+}
+
+// Communication Preferences
+export interface CommunicationPreferences {
+  preferred_method: 'email' | 'phone' | 'whatsapp' | 'telegram' | 'instagram' | 'sms';
+  allow_promotional: boolean;
+  language_preference: string;
+  time_preference: 'morning' | 'afternoon' | 'evening' | 'anytime';
+}
+
 export interface ParentInfo {
   father_name?: string;
   father_phone?: string;
@@ -46,12 +74,18 @@ export interface ParentInfo {
 }
 
 export interface CreateStudentInput {
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  full_name?: string; // Auto-generated from first_name + last_name if not provided
   email: string;
   phone?: string;
   date_of_birth?: string;
-  grade_level?: string;
-  student_code?: string;
+  country?: string;
+  city?: string;
+  skill_level?: string;
+  interested_courses?: string[];
+  social_media?: SocialMediaContacts;
+  communication_preferences?: CommunicationPreferences;
   emergency_contact?: EmergencyContact;
   medical_info?: MedicalInfo;
   parent_info?: ParentInfo;

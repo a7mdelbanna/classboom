@@ -90,4 +90,10 @@ export default {
     },
   },
   plugins: [],
+  safelist: [
+    'group-hover:opacity-100',
+    'group-hover:scale-100',
+    'opacity-0',
+    'scale-90'
+  ]
 }

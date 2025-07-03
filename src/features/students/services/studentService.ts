@@ -34,7 +34,8 @@ export class StudentService {
                 owner_id: user.id,
                 subscription_plan: 'trial',
                 subscription_status: 'active',
-                trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+                trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                settings: user.user_metadata?.school_settings || {}
               })
               .select('id')
               .single();
@@ -75,7 +76,7 @@ export class StudentService {
       }
 
       if (search) {
-        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,student_code.ilike.%${search}%`);
+        query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,student_code.ilike.%${search}%`);
       }
 
       const { data, error } = await query;
@@ -138,8 +139,18 @@ export class StudentService {
         studentCode = `${prefix}${timestamp}`;
       }
 
-      const newStudent = {
+      // Clean up empty strings for optional fields
+      const cleanedData = {
         ...studentData,
+        date_of_birth: studentData.date_of_birth || null,
+        city: studentData.city || null,
+        country: studentData.country || null,
+        skill_level: studentData.skill_level || null,
+        notes: studentData.notes || null
+      };
+
+      const newStudent = {
+        ...cleanedData,
         school_id: schoolId,
         student_code: studentCode
       };
@@ -170,9 +181,19 @@ export class StudentService {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
+      // Clean up empty strings for optional fields
+      const cleanedUpdates = {
+        ...updates,
+        date_of_birth: updates.date_of_birth === '' ? null : updates.date_of_birth,
+        city: updates.city === '' ? null : updates.city,
+        country: updates.country === '' ? null : updates.country,
+        skill_level: updates.skill_level === '' ? null : updates.skill_level,
+        notes: updates.notes === '' ? null : updates.notes
+      };
+      
       const { data, error } = await supabase
         .from('students')
-        .update(updates)
+        .update(cleanedUpdates)
         .eq('id', id)
         .eq('school_id', schoolId)
         .select()
