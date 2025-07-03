@@ -4,6 +4,21 @@
 
 These migrations need to be run in your Supabase dashboard to fix the schema_name constraint errors and complete the RLS-based multi-tenancy setup.
 
+### Step 0: Drop Old Triggers and Functions (CRITICAL - RUN FIRST!)
+Run the migration in `supabase/drop-old-triggers.sql`:
+
+```sql
+-- Drop the old trigger that creates custom schemas
+DROP TRIGGER IF EXISTS on_classboom_user_created ON auth.users;
+
+-- Drop the old functions that are no longer needed
+DROP FUNCTION IF EXISTS public.handle_classboom_signup() CASCADE;
+DROP FUNCTION IF EXISTS public.create_classboom_school_schema(TEXT, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.handle_classboom_login(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.get_user_school_schema(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.check_classboom_email_exists(TEXT) CASCADE;
+```
+
 ### Step 1: Fix schema_name Constraint
 Run the migration in `supabase/fix-schema-name-constraint.sql`:
 
