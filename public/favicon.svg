@@ -1,0 +1,12 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Orange book/folder icon -->
+  <rect x="12" y="16" width="40" height="32" rx="6" fill="#F97316"/>
+  
+  <!-- White lines representing text/content -->
+  <rect x="18" y="24" width="28" height="2" fill="white"/>
+  <rect x="18" y="30" width="28" height="2" fill="white"/>
+  <rect x="18" y="36" width="20" height="2" fill="white"/>
+  
+  <!-- Blue accent dot -->
+  <circle cx="52" cy="20" r="4" fill="#3B82F6"/>
+</svg>

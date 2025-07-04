@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../context/ThemeContext';
+import { setPageTitle, PAGE_TITLES } from '../../../utils/pageTitle';
 import { 
   HiOutlineAcademicCap,
   HiOutlineSparkles,
@@ -33,6 +34,9 @@ export function LandingPage() {
   const opacity = useTransform(scrollY, [0, 300], [1, 0.3]);
 
   useEffect(() => {
+    // Set page title
+    setPageTitle(PAGE_TITLES.landing);
+    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
