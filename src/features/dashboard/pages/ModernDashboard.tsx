@@ -4,6 +4,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { StudentService } from '../../students/services/studentService';
+import { ActivityService, type Activity } from '../../../services/activityService';
 import { Confetti } from '../../../components/Confetti';
 import { Modal } from '../../../components/Modal';
 import { AddStudentNew } from '../../students/pages/AddStudentNew';
@@ -27,6 +28,8 @@ export function ModernDashboard() {
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const { currentTheme } = useTheme();
   const [terminology, setTerminology] = useState({
     student: 'Student',
@@ -49,6 +52,7 @@ export function ModernDashboard() {
   useEffect(() => {
     loadCounts();
     loadTheme();
+    loadActivities();
   }, []);
   
   const loadTheme = async () => {
@@ -65,6 +69,18 @@ export function ModernDashboard() {
       console.error('Error loading counts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const recentActivities = await ActivityService.getRecentActivities(5);
+      setActivities(recentActivities);
+    } catch (error) {
+      console.error('Error loading activities:', error);
+    } finally {
+      setLoadingActivities(false);
     }
   };
 
@@ -203,37 +219,59 @@ export function ModernDashboard() {
         transition={{ delay: 0.6 }}
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700"
       >
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activity</h3>
+          <button
+            onClick={() => loadActivities()}
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+          >
+            Refresh
+          </button>
+        </div>
         
         {/* Activity Timeline */}
         <div className="space-y-4">
-          {[1, 2, 3].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 + i * 0.1 }}
-              className="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-classboom-primary to-classboom-primary/80 
-                  flex items-center justify-center text-white font-semibold text-sm">
-                  U{i + 1}
+          {loadingActivities ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+            </div>
+          ) : activities.length === 0 ? (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              No recent activity to show
+            </p>
+          ) : (
+            activities.map((activity, i) => (
+              <motion.div
+                key={activity.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.1 }}
+                className="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 
+                    flex items-center justify-center text-white text-lg">
+                    {ActivityService.getActivityIcon(activity.action_type)}
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 dark:text-gray-100">
-                  <span className="font-medium">User {i + 1}</span> added a new student
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 hours ago</p>
-              </div>
-              <div className="flex-shrink-0">
-                <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
-                  Student
-                </span>
-              </div>
-            </motion.div>
-          ))}
+                <div className="flex-1">
+                  <p className="text-sm text-gray-900 dark:text-gray-100">
+                    <span className="font-medium">{activity.user_name}</span> {activity.description}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {ActivityService.formatActivityTime(activity.created_at)}
+                  </p>
+                </div>
+                {activity.entity_type && (
+                  <div className="flex-shrink-0">
+                    <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full capitalize">
+                      {activity.entity_type}
+                    </span>
+                  </div>
+                )}
+              </motion.div>
+            ))
+          )}
         </div>
 
         <button className="w-full mt-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 
@@ -253,6 +291,7 @@ export function ModernDashboard() {
           onSuccess={() => {
             setShowAddStudentModal(false);
             loadCounts();
+            loadActivities(); // Refresh activities after adding student
           }}
           onCancel={() => setShowAddStudentModal(false)}
           isModal={true}

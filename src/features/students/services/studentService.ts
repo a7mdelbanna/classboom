@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabase';
 import { EmailService } from '../../../services/emailServiceClient';
+import { ActivityService } from '../../../services/activityService';
 import type { Student, CreateStudentInput } from '../types/student.types';
 
 export class StudentService {
@@ -200,6 +201,15 @@ export class StudentService {
         throw new Error('Failed to create student');
       }
 
+      // Log activity
+      await ActivityService.logActivity({
+        action_type: 'student_added',
+        entity_type: 'student',
+        entity_id: data.id,
+        entity_name: `${data.first_name} ${data.last_name}`,
+        description: `added a new student: ${data.first_name} ${data.last_name}`
+      });
+
       return data;
     } catch (error) {
       console.error('Error in createStudent:', error);
@@ -256,6 +266,15 @@ export class StudentService {
         throw new Error('Student not found or update failed');
       }
 
+      // Log activity
+      await ActivityService.logActivity({
+        action_type: 'student_updated',
+        entity_type: 'student',
+        entity_id: data.id,
+        entity_name: `${data.first_name} ${data.last_name}`,
+        description: `updated student: ${data.first_name} ${data.last_name}`
+      });
+
       return data;
     } catch (error) {
       console.error('Error in updateStudent:', error);
@@ -287,6 +306,14 @@ export class StudentService {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
+      // Get student info before deleting for activity log
+      const { data: student } = await supabase
+        .from('students')
+        .select('first_name, last_name')
+        .eq('id', id)
+        .eq('school_id', schoolId)
+        .single();
+      
       const { error } = await supabase
         .from('students')
         .delete()
@@ -296,6 +323,17 @@ export class StudentService {
       if (error) {
         console.error('Error deleting student:', error);
         throw new Error(error.message);
+      }
+
+      // Log activity
+      if (student) {
+        await ActivityService.logActivity({
+          action_type: 'student_deleted',
+          entity_type: 'student',
+          entity_id: id,
+          entity_name: `${student.first_name} ${student.last_name}`,
+          description: `deleted student: ${student.first_name} ${student.last_name}`
+        });
       }
     } catch (error) {
       console.error('Error in deleteStudent:', error);
