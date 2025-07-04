@@ -298,7 +298,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           value={formData.first_name}
                           onChange={(e) => setFormData({...formData, first_name: e.target.value})}
                           required
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           placeholder="John"
                         />
                       </div>
@@ -311,7 +311,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           value={formData.last_name}
                           onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                           required
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           placeholder="Smith"
                         />
                       </div>
@@ -323,7 +323,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           placeholder="john.smith@email.com"
                         />
                       </div>
@@ -335,7 +335,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
@@ -413,7 +413,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           type="text"
                           value={formData.city}
                           onChange={(e) => setFormData({...formData, city: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           placeholder="New York"
                         />
                       </div>
@@ -436,7 +436,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                               ...socialMedia,
                               [platform.key]: e.target.value
                             })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                             placeholder={platform.placeholder}
                           />
                         </div>
@@ -449,7 +449,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Communication Preferences</h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Preferred Communication Method
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -469,7 +469,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Best Time to Contact
                         </label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -498,13 +498,13 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
 
                   {/* Interested Courses */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Interested {terminology.classes}
                     </label>
                     {coursesLoading ? (
-                      <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center">
+                      <div className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
-                        <span className="text-gray-500">Loading {terminology.classes.toLowerCase()}...</span>
+                        <span className="text-gray-500 dark:text-gray-400">Loading {terminology.classes.toLowerCase()}...</span>
                       </div>
                     ) : (
                       <MultiSelect
@@ -519,7 +519,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                         maxHeight="max-h-48"
                       />
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {availableCourses.length === 0 && !coursesLoading
                         ? `No ${terminology.classes.toLowerCase()} configured yet. Set up your ${terminology.classes.toLowerCase()} in school settings.`
                         : `Select from available ${terminology.classes.toLowerCase()} or search to find specific ones`
@@ -550,22 +550,22 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-6"
                 >
-                  <h3 className="text-lg font-medium text-gray-900">Emergency Contact Information</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Emergency Contact Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Contact Name
                       </label>
                       <input
                         type="text"
                         value={emergencyContact.name}
                         onChange={(e) => setEmergencyContact({...emergencyContact, name: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Jane Smith"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Relationship
                       </label>
                       <CustomSelect
@@ -583,26 +583,26 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Primary Phone
                       </label>
                       <input
                         type="tel"
                         value={emergencyContact.phone}
                         onChange={(e) => setEmergencyContact({...emergencyContact, phone: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="+1 (555) 123-4567"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Alternate Phone
                       </label>
                       <input
                         type="tel"
                         value={emergencyContact.alternate_phone}
                         onChange={(e) => setEmergencyContact({...emergencyContact, alternate_phone: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="+1 (555) 987-6543"
                       />
                     </div>
@@ -617,71 +617,71 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-8"
                 >
-                  <h3 className="text-lg font-medium text-gray-900">{terminology.parent} Information</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">{terminology.parent} Information</h3>
                   
                   <div>
-                    <h4 className="text-md font-medium text-gray-800 mb-4">Father's Information</h4>
+                    <h4 className="text-md font-medium text-gray-800 dark:text-gray-200 mb-4">Father's Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <input
                         type="text"
                         value={parentInfo.father_name}
                         onChange={(e) => setParentInfo({...parentInfo, father_name: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Father's name"
                       />
                       <input
                         type="tel"
                         value={parentInfo.father_phone}
                         onChange={(e) => setParentInfo({...parentInfo, father_phone: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Father's phone"
                       />
                       <input
                         type="email"
                         value={parentInfo.father_email}
                         onChange={(e) => setParentInfo({...parentInfo, father_email: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Father's email"
                       />
                       <input
                         type="text"
                         value={parentInfo.father_occupation}
                         onChange={(e) => setParentInfo({...parentInfo, father_occupation: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Father's occupation"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="text-md font-medium text-gray-800 mb-4">Mother's Information</h4>
+                    <h4 className="text-md font-medium text-gray-800 dark:text-gray-200 mb-4">Mother's Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <input
                         type="text"
                         value={parentInfo.mother_name}
                         onChange={(e) => setParentInfo({...parentInfo, mother_name: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Mother's name"
                       />
                       <input
                         type="tel"
                         value={parentInfo.mother_phone}
                         onChange={(e) => setParentInfo({...parentInfo, mother_phone: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Mother's phone"
                       />
                       <input
                         type="email"
                         value={parentInfo.mother_email}
                         onChange={(e) => setParentInfo({...parentInfo, mother_email: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Mother's email"
                       />
                       <input
                         type="text"
                         value={parentInfo.mother_occupation}
                         onChange={(e) => setParentInfo({...parentInfo, mother_occupation: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Mother's occupation"
                       />
                     </div>
@@ -696,10 +696,10 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-6"
                 >
-                  <h3 className="text-lg font-medium text-gray-900">Medical Information</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Medical Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Blood Type
                       </label>
                       <CustomSelect
@@ -719,21 +719,21 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Doctor's Name
                       </label>
                       <input
                         type="text"
                         value={medicalInfo.doctor_name}
                         onChange={(e) => setMedicalInfo({...medicalInfo, doctor_name: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Dr. Smith"
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Allergies (comma-separated)
                     </label>
                     <input
@@ -743,13 +743,13 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                         ...medicalInfo, 
                         allergies: e.target.value ? e.target.value.split(',').map(a => a.trim()) : []
                       })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="Peanuts, Shellfish, etc."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Medications (comma-separated)
                     </label>
                     <input
@@ -759,7 +759,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                         ...medicalInfo, 
                         medications: e.target.value ? e.target.value.split(',').map(m => m.trim()) : []
                       })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="Insulin, Inhaler, etc."
                     />
                   </div>

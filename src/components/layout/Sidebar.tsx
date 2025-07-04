@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../features/auth/context/AuthContext';
+import { Modal } from '../Modal';
+import { AddStudentNew } from '../../features/students/pages/AddStudentNew';
 import { 
   HiOutlineHome,
   HiOutlineUserGroup,
@@ -29,6 +31,7 @@ interface MenuItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   path?: string;
+  action?: () => void;
   children?: MenuItem[];
 }
 
@@ -36,6 +39,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
   const location = useLocation();
   const { schoolInfo } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>(['students']);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
   // Get terminology from school settings
   const terminology = schoolInfo?.settings?.terminology || {
@@ -69,7 +73,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           id: 'students-add',
           label: 'Add New',
           icon: HiOutlinePlus,
-          path: '/students/new'
+          action: () => setShowAddStudentModal(true)
         },
         {
           id: 'students-reports',
@@ -171,7 +175,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
               px-3 py-2.5 rounded-lg
               transition-all duration-200 group relative
               ${active 
-                ? 'bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white shadow-lg' 
+                ? 'bg-gradient-to-r from-orange-500 to-orange-500/80 text-white shadow-lg' 
                 : 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }
             `}
@@ -220,6 +224,35 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
       );
     }
 
+    if (item.action) {
+      return (
+        <button
+          key={item.id}
+          onClick={item.action}
+          className={`
+            w-full flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} 
+            px-3 py-2.5 rounded-lg
+            transition-all duration-200 group relative
+            ${depth > 0 && !collapsed ? 'text-sm' : ''}
+            hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white
+          `}
+        >
+          <item.icon className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
+          {!collapsed && (
+            <span className="font-medium text-left">{item.label}</span>
+          )}
+          
+          {/* Tooltip for collapsed state */}
+          {collapsed && (
+            <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md 
+              opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+              {item.label}
+            </div>
+          )}
+        </button>
+      );
+    }
+
     return (
       <NavLink
         key={item.id}
@@ -230,7 +263,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           transition-all duration-200 group relative
           ${depth > 0 && !collapsed ? 'text-sm' : ''}
           ${isActive 
-            ? 'bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white shadow-lg' 
+            ? 'bg-gradient-to-r from-orange-500 to-orange-500/80 text-white shadow-lg' 
             : 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }
         `}
@@ -273,7 +306,7 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
             <motion.h1 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-xl font-bold classboom-gradient-text"
+              className="text-xl font-bold bg-gradient-to-r from-orange-500 to-blue-600 bg-clip-text text-transparent"
             >
               ClassBoom
             </motion.h1>
@@ -308,6 +341,23 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           />
         )}
       </AnimatePresence>
+
+      {/* Add Student Modal */}
+      <Modal
+        isOpen={showAddStudentModal}
+        onClose={() => setShowAddStudentModal(false)}
+        title={`Add New ${terminology.student}`}
+        size="xl"
+      >
+        <AddStudentNew 
+          onSuccess={() => {
+            setShowAddStudentModal(false);
+            // Activities will refresh automatically via the dashboard
+          }}
+          onCancel={() => setShowAddStudentModal(false)}
+          isModal={true}
+        />
+      </Modal>
     </>
   );
 }

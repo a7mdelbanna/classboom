@@ -92,7 +92,7 @@ export function MultiSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-left flex items-center justify-between"
+        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-left flex items-center justify-between"
       >
         <span className={selectedCount > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
           {selectedText}
@@ -121,7 +121,7 @@ export function MultiSelect({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className={`absolute z-[100] w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg ${maxHeight} overflow-hidden`}
+            className={`absolute z-[100] w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg ${maxHeight} overflow-hidden`}
           >
             {/* Search Input */}
             <div className="p-3 border-b border-gray-200 dark:border-gray-700">
