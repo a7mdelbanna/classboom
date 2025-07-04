@@ -253,7 +253,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
   const content = (
     <>
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="flex space-x-8 px-6">
           {tabs.map((tab) => (
             <button
@@ -263,7 +263,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               <span className="flex items-center space-x-2">
@@ -287,10 +287,10 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                 >
                   {/* Basic Info */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           First Name *
                         </label>
                         <input
@@ -298,12 +298,12 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           value={formData.first_name}
                           onChange={(e) => setFormData({...formData, first_name: e.target.value})}
                           required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder="John"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Last Name *
                         </label>
                         <input
@@ -311,36 +311,36 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           value={formData.last_name}
                           onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                           required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder="Smith"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Email
                         </label>
                         <input
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder="john.smith@email.com"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Phone Number
                         </label>
                         <input
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Date of Birth
                         </label>
                         <DatePicker
@@ -350,7 +350,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                           maxDate={new Date().toISOString().split('T')[0]} // Can't be born in the future
                         />
                         {formData.date_of_birth && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Age: {studentAge} years
                             {ageGroup === 'both' && (
                               <span className={`ml-2 ${studentAge < 18 ? 'text-orange-600' : 'text-green-600'}`}>
@@ -367,7 +367,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           {skillLevels?.name || 'Level'}
                         </label>
                         <CustomSelect
@@ -389,10 +389,10 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
 
                   {/* Location */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Location</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Location</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Country
                         </label>
                         <CustomSelect
@@ -406,14 +406,14 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           City
                         </label>
                         <input
                           type="text"
                           value={formData.city}
                           onChange={(e) => setFormData({...formData, city: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder="New York"
                         />
                       </div>
@@ -422,11 +422,11 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
 
                   {/* Social Media */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Social Media Contacts</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Social Media Contacts</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {socialMediaPlatforms.map((platform) => (
                         <div key={platform.key}>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {platform.icon} {platform.label}
                           </label>
                           <input
@@ -436,7 +436,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                               ...socialMedia,
                               [platform.key]: e.target.value
                             })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             placeholder={platform.placeholder}
                           />
                         </div>
@@ -446,7 +446,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
 
                   {/* Communication Preferences */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Communication Preferences</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Communication Preferences</h3>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -514,7 +514,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                       Interested {terminology.classes}
                     </label>
                     {coursesLoading ? (
-                      <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 flex items-center">
+                      <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
                         <span className="text-gray-500">Loading {terminology.classes.toLowerCase()}...</span>
                       </div>
@@ -541,14 +541,14 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
 
                   {/* Notes */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Notes
                     </label>
                     <textarea
                       value={formData.notes}
                       onChange={(e) => setFormData({...formData, notes: e.target.value})}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="Any additional notes about the student..."
                     />
                   </div>
@@ -786,12 +786,12 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
             </div>
 
         {/* Submit Button */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-between">
+        <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between">
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+              className="px-6 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -815,18 +815,18 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
 
   // Return full page layout for standalone mode
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate('/students')}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
               >
                 ← Back to {terminology.students}
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {student ? `Edit ${terminology.student}` : `Add New ${terminology.student}`}
               </h1>
             </div>
@@ -835,7 +835,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
           {content}
         </div>
       </div>

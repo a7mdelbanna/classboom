@@ -46,6 +46,22 @@
     background-color: rgb(var(--classboom-background));
     color: rgb(var(--classboom-foreground));
   }
+
+  /* Force dark theme styling for select options */
+  .dark select option {
+    background-color: rgb(55 65 81) !important;
+    color: rgb(243 244 246) !important;
+  }
+  
+  .dark select {
+    color-scheme: dark;
+  }
+
+  /* Dark theme placeholder styling */
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: rgb(156 163 175) !important;
+  }
 }
 
 /* Color utility classes */

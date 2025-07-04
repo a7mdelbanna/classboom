@@ -17,6 +17,9 @@ import { StudentProfile } from './features/students/pages/StudentProfile';
 import { SettingsPage } from './features/settings/pages/SettingsPage';
 import { StudentPortalDashboard } from './features/students/pages/StudentPortalDashboard';
 import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
+import { LandingPage } from './features/landing/pages/LandingPage';
+import { StudentActivation } from './features/auth/pages/StudentActivation';
+import { ParentActivation } from './features/auth/pages/ParentActivation';
 
 function App() {
   return (
@@ -25,11 +28,16 @@ function App() {
         <AuthProvider>
           <ThemeProvider>
         <Routes>
+          {/* Landing Page */}
+          <Route path="/" element={<LandingPage />} />
+          
           {/* Public Routes */}
           <Route path="/login" element={<EnhancedLoginPage />} />
           <Route path="/login-legacy" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/demo" element={<DemoLogin />} />
+          <Route path="/activate/student/:token" element={<StudentActivation />} />
+          <Route path="/activate/parent/:token" element={<ParentActivation />} />
           
           {/* Protected Setup Route */}
           <Route path="/signup/trial-wizard" element={
@@ -73,7 +81,6 @@ function App() {
             </RoleProtectedRoute>
           } />
           
-          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
           </ThemeProvider>
         </AuthProvider>

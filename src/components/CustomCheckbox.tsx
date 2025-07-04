@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
 interface CustomCheckboxProps {
   checked: boolean;
@@ -8,6 +9,8 @@ interface CustomCheckboxProps {
 }
 
 export function CustomCheckbox({ checked, onChange, label, className = "" }: CustomCheckboxProps) {
+  const { isDarkMode } = useTheme();
+  
   return (
     <label className={`flex items-center cursor-pointer ${className}`}>
       <div className="relative">
@@ -19,8 +22,8 @@ export function CustomCheckbox({ checked, onChange, label, className = "" }: Cus
         />
         <motion.div
           animate={{
-            backgroundColor: checked ? '#FF6B35' : '#fff',
-            borderColor: checked ? '#FF6B35' : '#d1d5db',
+            backgroundColor: checked ? '#FF6B35' : isDarkMode ? '#374151' : '#fff',
+            borderColor: checked ? '#FF6B35' : isDarkMode ? '#4b5563' : '#d1d5db',
           }}
           className="w-5 h-5 border-2 rounded transition-colors"
         >
@@ -47,7 +50,7 @@ export function CustomCheckbox({ checked, onChange, label, className = "" }: Cus
           </AnimatePresence>
         </motion.div>
       </div>
-      {label && <span className="ml-3 text-gray-700">{label}</span>}
+      {label && <span className="ml-3 text-gray-700 dark:text-gray-300">{label}</span>}
     </label>
   );
 }

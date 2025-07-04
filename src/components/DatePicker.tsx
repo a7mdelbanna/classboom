@@ -122,13 +122,13 @@ export function DatePicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white text-left flex items-center justify-between"
+        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-left flex items-center justify-between"
       >
-        <span className={value ? 'text-gray-900' : 'text-gray-500'}>
+        <span className={value ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
           {formatDisplayDate(value)}
         </span>
         <svg
-          className="w-5 h-5 text-gray-400"
+          className="w-5 h-5 text-gray-400 dark:text-gray-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -149,14 +149,14 @@ export function DatePicker({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-[100] mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-80"
+            className="absolute z-[100] mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 w-80"
           >
             {/* Month/Year Navigation */}
             <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
                 onClick={() => handleMonthChange(-1)}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -164,7 +164,7 @@ export function DatePicker({
               </button>
               
               <div className="flex items-center space-x-2">
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-gray-900 dark:text-white">
                   {monthNames[viewDate.getMonth()]}
                 </span>
                 <div className="flex items-center">
@@ -177,7 +177,7 @@ export function DatePicker({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <span className="font-medium text-gray-900 mx-1">
+                  <span className="font-medium text-gray-900 dark:text-white mx-1">
                     {viewDate.getFullYear()}
                   </span>
                   <button
@@ -195,7 +195,7 @@ export function DatePicker({
               <button
                 type="button"
                 onClick={() => handleMonthChange(1)}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -206,7 +206,7 @@ export function DatePicker({
             {/* Days of Week */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {daysInWeek.map(day => (
-                <div key={day} className="text-center text-xs font-medium text-gray-600 py-1">
+                <div key={day} className="text-center text-xs font-medium text-gray-600 dark:text-gray-400 py-1">
                   {day}
                 </div>
               ))}
@@ -235,10 +235,10 @@ export function DatePicker({
                       ${isSelected 
                         ? 'bg-orange-500 text-white hover:bg-orange-600' 
                         : isToday
-                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                        ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/30'
                         : isDisabled
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }
                     `}
                   >
@@ -249,7 +249,7 @@ export function DatePicker({
             </div>
 
             {/* Today Button */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={() => {
@@ -259,7 +259,7 @@ export function DatePicker({
                     setIsOpen(false);
                   }
                 }}
-                className="w-full py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                className="w-full py-2 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
               >
                 Today
               </button>

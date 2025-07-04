@@ -92,19 +92,19 @@ export function MultiSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white text-left flex items-center justify-between"
+        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-left flex items-center justify-between"
       >
-        <span className={selectedCount > 0 ? 'text-gray-900' : 'text-gray-500'}>
+        <span className={selectedCount > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
           {selectedText}
         </span>
         <div className="flex items-center space-x-2">
           {selectedCount > 0 && (
-            <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full">
+            <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 text-xs font-medium px-2 py-1 rounded-full">
               {selectedCount}
             </span>
           )}
           <svg
-            className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''} text-gray-500 dark:text-gray-400`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -121,16 +121,16 @@ export function MultiSelect({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className={`absolute z-[100] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg ${maxHeight} overflow-hidden`}
+            className={`absolute z-[100] w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg ${maxHeight} overflow-hidden`}
           >
             {/* Search Input */}
-            <div className="p-3 border-b border-gray-200">
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700">
               <input
                 type="text"
                 placeholder="Search options..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -138,22 +138,22 @@ export function MultiSelect({
             {/* Options List */}
             <div className="overflow-y-auto" style={{ maxHeight: '200px' }}>
               {Object.keys(groupedOptions).length === 0 ? (
-                <div className="p-3 text-sm text-gray-500 text-center">
+                <div className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">
                   No options found
                 </div>
               ) : (
                 Object.entries(groupedOptions).map(([categoryName, categoryOptions]) => (
                   <div key={categoryName}>
                     {showCategories && Object.keys(groupedOptions).length > 1 && (
-                      <div className="sticky top-0 bg-gray-50 px-3 py-2 border-b border-gray-100">
+                      <div className="sticky top-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 border-b border-gray-100 dark:border-gray-600">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                             {categoryName}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleSelectAll(categoryOptions)}
-                            className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                            className="text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium"
                           >
                             {categoryOptions.every(opt => value.includes(opt.value)) ? 'Deselect All' : 'Select All'}
                           </button>
@@ -164,7 +164,7 @@ export function MultiSelect({
                     {categoryOptions.map((option) => (
                       <div
                         key={option.value}
-                        className="px-3 py-2 hover:bg-orange-50 transition-colors cursor-pointer"
+                        className="px-3 py-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors cursor-pointer"
                         onClick={() => handleToggle(option.value)}
                       >
                         <CustomCheckbox
@@ -182,11 +182,11 @@ export function MultiSelect({
 
             {/* Clear All / Select All Actions */}
             {filteredOptions.length > 0 && (
-              <div className="p-3 border-t border-gray-200 flex justify-between">
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-between">
                 <button
                   type="button"
                   onClick={() => onChange([])}
-                  className="text-sm text-gray-600 hover:text-gray-700"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   disabled={value.length === 0}
                 >
                   Clear All
@@ -194,7 +194,7 @@ export function MultiSelect({
                 <button
                   type="button"
                   onClick={() => onChange(filteredOptions.map(opt => opt.value))}
-                  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                  className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium"
                   disabled={value.length === filteredOptions.length}
                 >
                   Select All Visible

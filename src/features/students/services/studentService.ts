@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabase';
+import { EmailService } from '../../../services/emailServiceClient';
 import type { Student, CreateStudentInput } from '../types/student.types';
 
 export class StudentService {
@@ -320,6 +321,231 @@ export class StudentService {
     } catch (error) {
       console.error('Error in getStudentCount:', error);
       return 0; // Return 0 on error to prevent dashboard crashes
+    }
+  }
+
+  // Portal invitation methods
+  static async inviteStudent(studentId: string): Promise<boolean> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      // Get student details
+      const { data: student, error: studentError } = await supabase
+        .from('students')
+        .select('*, schools!inner(name)')
+        .eq('id', studentId)
+        .eq('school_id', schoolId)
+        .single();
+
+      if (studentError || !student) {
+        throw new Error('Student not found');
+      }
+
+      if (!student.email) {
+        throw new Error('Student email is required to send invitation');
+      }
+
+      // Get current user (inviter) details
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No authenticated user');
+
+      // Generate invitation token
+      const inviteToken = EmailService.generateInvitationToken();
+      const expiresAt = EmailService.getTokenExpiration(48); // 48 hours
+
+      // Update student record with invitation details
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({
+          invite_token: inviteToken,
+          invite_sent_at: new Date().toISOString(),
+          can_login: true
+        })
+        .eq('id', studentId)
+        .eq('school_id', schoolId);
+
+      if (updateError) {
+        throw new Error('Failed to update student invitation status');
+      }
+
+      // Send invitation email
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const activationLink = `${baseUrl}/activate/student/${inviteToken}`;
+      const schoolName = (student.schools as any).name;
+      
+      try {
+        await EmailService.sendStudentInvitation(student.email, {
+          studentName: `${student.first_name} ${student.last_name}`,
+          schoolName: schoolName,
+          inviterName: user.user_metadata?.full_name || 'School Administrator',
+          activationLink,
+          expiresIn: '48 hours'
+        });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        
+        // Rollback invitation if email fails
+        await supabase
+          .from('students')
+          .update({
+            invite_token: null,
+            invite_sent_at: null,
+            can_login: false
+          })
+          .eq('id', studentId);
+        
+        throw new Error(`Failed to send invitation email: ${emailError.message}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error inviting student:', error);
+      throw error;
+    }
+  }
+
+  static async resendInvitation(studentId: string): Promise<boolean> {
+    // Simply call inviteStudent again - it will generate a new token
+    return this.inviteStudent(studentId);
+  }
+
+  static async getStudentByToken(token: string): Promise<Student | null> {
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('invite_token', token)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      // Check if token is expired (48 hours)
+      if (data.invite_sent_at) {
+        const sentAt = new Date(data.invite_sent_at);
+        const now = new Date();
+        const hoursDiff = (now.getTime() - sentAt.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursDiff > 48) {
+          return null; // Token expired
+        }
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting student by token:', error);
+      return null;
+    }
+  }
+
+  static async activateStudentAccount(
+    token: string, 
+    password: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Get student by token
+      const student = await this.getStudentByToken(token);
+      if (!student) {
+        return { success: false, error: 'Invalid or expired invitation token' };
+      }
+
+      if (!student.email) {
+        return { success: false, error: 'Student email not found' };
+      }
+
+      // Create auth user
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: student.email,
+        password,
+        options: {
+          data: {
+            student_id: student.id,
+            full_name: `${student.first_name} ${student.last_name}`,
+            role: 'student'
+          }
+        }
+      });
+
+      if (signUpError || !authData.user) {
+        return { success: false, error: signUpError?.message || 'Failed to create account' };
+      }
+
+      // Update student record
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({
+          user_id: authData.user.id,
+          invite_token: null, // Clear the token
+          account_created_at: new Date().toISOString()
+        })
+        .eq('id', student.id);
+
+      if (updateError) {
+        // TODO: Consider cleanup of auth user if this fails
+        return { success: false, error: 'Failed to link account' };
+      }
+
+      // Get school name for welcome email
+      const { data: school } = await supabase
+        .from('schools')
+        .select('name')
+        .eq('id', student.school_id)
+        .single();
+
+      // Send welcome email
+      if (school) {
+        await EmailService.sendWelcomeEmail(
+          student.email,
+          `${student.first_name} ${student.last_name}`,
+          school.name,
+          'student'
+        );
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error activating student account:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  }
+
+  static async revokePortalAccess(studentId: string): Promise<void> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      // Get student to check if they have a user_id
+      const { data: student, error: fetchError } = await supabase
+        .from('students')
+        .select('user_id')
+        .eq('id', studentId)
+        .eq('school_id', schoolId)
+        .single();
+
+      if (fetchError) {
+        throw new Error('Student not found');
+      }
+
+      // Update student record
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({
+          can_login: false,
+          invite_token: null,
+          invite_sent_at: null
+        })
+        .eq('id', studentId)
+        .eq('school_id', schoolId);
+
+      if (updateError) {
+        throw new Error('Failed to revoke portal access');
+      }
+
+      // If student has an auth account, we might want to disable it
+      // For now, we just prevent login via can_login flag
+    } catch (error) {
+      console.error('Error revoking portal access:', error);
+      throw error;
     }
   }
 }
