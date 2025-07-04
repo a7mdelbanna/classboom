@@ -7,6 +7,7 @@ import { useToast } from '../../../context/ToastContext';
 import { useAuth } from '../../auth/context/AuthContext';
 import { getInstitutionConfig, TERMINOLOGY_CONFIG, type InstitutionType } from '../../../types/institution.types';
 import { AddStudentNew } from './AddStudentNew';
+import { BulkImportModal } from '../components/BulkImportModal';
 import type { Student } from '../types/student.types';
 
 // Avatar generation function
@@ -29,6 +30,7 @@ export function StudentListCards() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
 
@@ -107,17 +109,30 @@ export function StudentListCards() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{terminology.students}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your {terminology.students.toLowerCase()} and their information</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAddModal(true)}
-            className="bg-gradient-to-r from-classboom-primary to-classboom-primary/80 text-white px-6 py-3 rounded-xl hover:brightness-110 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Add {terminology.student}</span>
-          </motion.button>
+          <div className="flex items-center space-x-3">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowBulkImportModal(true)}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl hover:brightness-110 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span>Bulk Import</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl hover:brightness-110 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Add {terminology.student}</span>
+            </motion.button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -372,6 +387,17 @@ export function StudentListCards() {
           isModal={true}
         />
       </Modal>
+
+      {/* Bulk Import Modal */}
+      <BulkImportModal
+        isOpen={showBulkImportModal}
+        onClose={() => setShowBulkImportModal(false)}
+        onSuccess={() => {
+          setShowBulkImportModal(false);
+          loadStudents();
+          showToast(`${terminology.students} imported successfully!`, 'success');
+        }}
+      />
 
       {/* Delete Confirmation Modal */}
       <Modal
