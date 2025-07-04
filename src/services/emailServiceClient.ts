@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { emailConfig, generateActivationUrl, replaceTemplateVars } from '../config/email.config';
+import { emailConfig } from '../config/email.config';
 
 // Email template types
 export type EmailTemplateType = 
