@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { emailConfig, generateActivationUrl, replaceTemplateVars } from '../config/email.config';
 
 // Email template types
 export type EmailTemplateType = 
@@ -128,7 +129,7 @@ export class EmailService {
             </div>
             <div class="footer">
               <p>This is an automated message. Please do not reply to this email.</p>
-              <p>&copy; 2025 ClassBoom. All rights reserved.</p>
+              <p>&copy; 2025 ${emailConfig.fromName}. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -208,7 +209,7 @@ ${data.schoolName} Team
             </div>
             <div class="footer">
               <p>This is an automated message. Please do not reply to this email.</p>
-              <p>&copy; 2025 ClassBoom. All rights reserved.</p>
+              <p>&copy; 2025 ${emailConfig.fromName}. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -267,7 +268,7 @@ ${data.schoolName} Team
               <p>You can now log in to your portal to access all available features.</p>
               
               <p style="text-align: center;">
-                <a href="${process.env.VITE_APP_URL || 'http://localhost:5173'}/login" class="button">Go to Portal</a>
+                <a href="${emailConfig.appUrl}/login" class="button">Go to Portal</a>
               </p>
               
               <p>If you have any questions or need assistance, please don't hesitate to contact us.</p>
@@ -275,7 +276,7 @@ ${data.schoolName} Team
               <p>Best regards,<br>${schoolName} Team</p>
             </div>
             <div class="footer">
-              <p>&copy; 2025 ClassBoom. All rights reserved.</p>
+              <p>&copy; 2025 ${emailConfig.fromName}. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -286,7 +287,7 @@ ${data.schoolName} Team
       to: email, 
       subject, 
       html,
-      text: `Welcome to ${schoolName}! Your ${portalType} account has been activated. Log in at: ${process.env.VITE_APP_URL || 'http://localhost:5173'}/login`
+      text: `Welcome to ${schoolName}! Your ${portalType} account has been activated. Log in at: ${emailConfig.appUrl}/login`
     });
   }
 
