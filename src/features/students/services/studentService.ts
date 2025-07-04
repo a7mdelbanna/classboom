@@ -351,11 +351,13 @@ export class StudentService {
 
       // Generate invitation token
       const inviteToken = EmailService.generateInvitationToken();
+      console.log('🔑 Generated invite token:', inviteToken);
       // Generate token expiration (48 hours from now)
       EmailService.getTokenExpiration(48); // 48 hours
 
       // Update student record with invitation details
-      const { error: updateError } = await supabase
+      console.log('📝 Updating student record:', { studentId, schoolId, inviteToken });
+      const { data: updateData, error: updateError } = await supabase
         .from('students')
         .update({
           invite_token: inviteToken,
@@ -363,9 +365,13 @@ export class StudentService {
           can_login: true
         })
         .eq('id', studentId)
-        .eq('school_id', schoolId);
+        .eq('school_id', schoolId)
+        .select();
+
+      console.log('📝 Update result:', { updateData, updateError });
 
       if (updateError) {
+        console.error('❌ Update error:', updateError);
         throw new Error('Failed to update student invitation status');
       }
 
