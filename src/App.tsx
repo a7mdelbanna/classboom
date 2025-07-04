@@ -2,11 +2,15 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './features/auth/context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { LoginPage } from './features/auth/pages/LoginPage';
-import { EnhancedLoginPage } from './features/auth/pages/EnhancedLoginPage';
-import { SignupPage } from './features/auth/pages/SignupPage';
-import { SetupWizard } from './features/auth/pages/SetupWizard';
-import { DemoLogin } from './features/auth/pages/DemoLogin';
+import { 
+  LoginPage,
+  EnhancedLoginPage,
+  SignupPage,
+  SetupWizard,
+  DemoLogin,
+  StudentActivation,
+  ParentActivation
+} from './features/auth/pages';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleProtectedRoute } from './components/RoleProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -18,8 +22,6 @@ import { SettingsPage } from './features/settings/pages/SettingsPage';
 import { StudentPortalDashboard } from './features/students/pages/StudentPortalDashboard';
 import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
 import { LandingPage } from './features/landing/pages/LandingPage';
-import { StudentActivation } from './features/auth/pages/StudentActivation';
-import { ParentActivation } from './features/auth/pages/ParentActivation';
 
 function App() {
   return (
