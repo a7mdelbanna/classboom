@@ -62,6 +62,31 @@
   .dark textarea::placeholder {
     color: rgb(156 163 175) !important;
   }
+  
+  /* Ensure all form inputs have proper text color in light mode */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="url"],
+  textarea,
+  select {
+    color: rgb(17 24 39); /* gray-900 */
+  }
+  
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="password"],
+  .dark input[type="number"],
+  .dark input[type="tel"],
+  .dark input[type="date"],
+  .dark input[type="url"],
+  .dark textarea,
+  .dark select {
+    color: rgb(243 244 246); /* gray-100 */
+  }
 }
 
 /* Color utility classes */
