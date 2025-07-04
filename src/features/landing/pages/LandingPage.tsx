@@ -9,7 +9,6 @@ import {
   HiOutlineCalendar,
   HiOutlineCurrencyDollar,
   HiOutlineChartBar,
-  HiOutlineGlobe,
   HiOutlineShieldCheck,
   HiOutlineClock,
   HiOutlineCheckCircle,

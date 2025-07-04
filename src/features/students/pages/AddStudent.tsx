@@ -11,11 +11,11 @@ export function AddStudent() {
   const [currentStep, setCurrentStep] = useState(1);
   
   const [formData, setFormData] = useState<CreateStudentInput>({
-    full_name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     date_of_birth: '',
-    grade_level: '',
     student_code: '',
     notes: ''
   });
@@ -212,8 +212,8 @@ export function AddStudent() {
                       Grade Level
                     </label>
                     <select
-                      value={formData.grade_level}
-                      onChange={(e) => setFormData({...formData, grade_level: e.target.value})}
+                      value={formData.skill_level || ''}
+                      onChange={(e) => setFormData({...formData, skill_level: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
                       <option value="">Select Grade</option>

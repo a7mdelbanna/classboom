@@ -233,7 +233,7 @@ export function SetupWizard() {
       default:
         // Schools default
         setAcademicHourMinutes(50);
-        setPricingModel('semester');
+        setPricingModels(['semester']);
     }
   }, [institutionType]);
   

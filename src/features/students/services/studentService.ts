@@ -351,7 +351,8 @@ export class StudentService {
 
       // Generate invitation token
       const inviteToken = EmailService.generateInvitationToken();
-      const expiresAt = EmailService.getTokenExpiration(48); // 48 hours
+      // Generate token expiration (48 hours from now)
+      EmailService.getTokenExpiration(48); // 48 hours
 
       // Update student record with invitation details
       const { error: updateError } = await supabase
@@ -394,7 +395,7 @@ export class StudentService {
           })
           .eq('id', studentId);
         
-        throw new Error(`Failed to send invitation email: ${emailError.message}`);
+        throw new Error(`Failed to send invitation email: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
       }
 
       return true;
@@ -515,7 +516,7 @@ export class StudentService {
       const schoolId = await this.getCurrentSchoolId();
       
       // Get student to check if they have a user_id
-      const { data: student, error: fetchError } = await supabase
+      const { error: fetchError } = await supabase
         .from('students')
         .select('user_id')
         .eq('id', studentId)

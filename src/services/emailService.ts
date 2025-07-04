@@ -1,4 +1,3 @@
-import { supabase } from '../lib/supabase';
 import { Resend } from 'resend';
 
 // Initialize Resend with API key

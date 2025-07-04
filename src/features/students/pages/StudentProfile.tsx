@@ -147,7 +147,7 @@ export function StudentProfile() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Grade Level</label>
-                  <p className="text-sm text-gray-900 dark:text-white">{student.grade_level || 'Not specified'}</p>
+                  <p className="text-sm text-gray-900 dark:text-white">{student.skill_level || 'Not specified'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>

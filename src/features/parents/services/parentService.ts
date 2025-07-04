@@ -187,7 +187,7 @@ export class ParentService {
           })
           .eq('id', parentId);
         
-        throw new Error(`Failed to send invitation email: ${emailError.message}`);
+        throw new Error(`Failed to send invitation email: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
       }
 
       return true;

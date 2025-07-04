@@ -8,7 +8,7 @@ import { CustomCheckbox } from '../../../components/CustomCheckbox';
 import { MultiSelect } from '../../../components/MultiSelect';
 import { DatePicker } from '../../../components/DatePicker';
 import { useToast } from '../../../context/ToastContext';
-import { getInstitutionConfig, TERMINOLOGY_CONFIG } from '../../../types/institution.types';
+import { getInstitutionConfig, TERMINOLOGY_CONFIG, type InstitutionType } from '../../../types/institution.types';
 import { getSkillLevels } from '../types/skill-levels.types';
 import { COUNTRIES, detectCountryFromPhone } from '../../../utils/countries';
 import { CoursesService } from '../../courses/services/coursesService';
@@ -62,7 +62,7 @@ interface AddStudentNewProps {
 
 export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }: AddStudentNewProps) {
   const navigate = useNavigate();
-  const { user, schoolInfo } = useAuth();
+  const { schoolInfo } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -72,10 +72,10 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
   
   // Get institution config for terminology and skill levels
   const institutionType = schoolInfo?.settings?.institution_type || 'public_school';
-  const institutionConfig = getInstitutionConfig(institutionType);
+  const institutionConfig = getInstitutionConfig(institutionType as InstitutionType);
   
   const terminology = institutionConfig?.terminology || TERMINOLOGY_CONFIG.public_school;
-  const skillLevels = getSkillLevels(institutionType);
+  const skillLevels = getSkillLevels(institutionType as InstitutionType);
 
 
   // Main student info - Initialize with existing data if editing
@@ -462,13 +462,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                                   setCommPrefs({...commPrefs, preferred_method: method.value as any});
                                 }
                               }}
-                              label={
-                                <span className="flex items-center space-x-2">
-                                  <span>{method.icon}</span>
-                                  <span>{method.label}</span>
-                                </span>
-                              }
-                              variant="radio"
+                              label={`${method.icon} ${method.label}`}
                             />
                           ))}
                         </div>
@@ -488,13 +482,7 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                                   setCommPrefs({...commPrefs, time_preference: time.value as any});
                                 }
                               }}
-                              label={
-                                <span className="flex items-center space-x-2">
-                                  <span>{time.icon}</span>
-                                  <span>{time.label}</span>
-                                </span>
-                              }
-                              variant="radio"
+                              label={`${time.icon} ${time.label}`}
                             />
                           ))}
                         </div>

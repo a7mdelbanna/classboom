@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../auth/context/AuthContext';
-import { useToast } from '../../../context/ToastContext';
-import { supabase } from '../../../lib/supabase';
 import { 
-  HiOutlineUsers,
   HiOutlineCalendar,
   HiOutlineAcademicCap,
   HiOutlineDocumentText,
@@ -27,8 +24,7 @@ interface ChildData {
 }
 
 export function ParentPortalDashboard() {
-  const { user, parentInfo } = useAuth();
-  const { showToast } = useToast();
+  const { parentInfo } = useAuth();
   const [children, setChildren] = useState<ChildData[]>([]);
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

@@ -169,7 +169,7 @@ export function MultiSelect({
                       >
                         <CustomCheckbox
                           checked={value.includes(option.value)}
-                          onChange={(checked) => handleToggle(option.value)}
+                          onChange={() => handleToggle(option.value)}
                           label={option.label}
                           className="pointer-events-none"
                         />

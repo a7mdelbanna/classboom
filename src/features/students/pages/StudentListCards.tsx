@@ -5,7 +5,7 @@ import { StudentService } from '../services/studentService';
 import { Modal } from '../../../components/Modal';
 import { useToast } from '../../../context/ToastContext';
 import { useAuth } from '../../auth/context/AuthContext';
-import { getInstitutionConfig, TERMINOLOGY_CONFIG } from '../../../types/institution.types';
+import { getInstitutionConfig, TERMINOLOGY_CONFIG, type InstitutionType } from '../../../types/institution.types';
 import { AddStudentNew } from './AddStudentNew';
 import type { Student } from '../types/student.types';
 
@@ -34,7 +34,7 @@ export function StudentListCards() {
 
   // Get institution terminology
   const institutionType = schoolInfo?.settings?.institution_type || 'public_school';
-  const institutionConfig = getInstitutionConfig(institutionType);
+  const institutionConfig = getInstitutionConfig(institutionType as InstitutionType);
   const terminology = institutionConfig?.terminology || TERMINOLOGY_CONFIG.public_school;
 
   useEffect(() => {

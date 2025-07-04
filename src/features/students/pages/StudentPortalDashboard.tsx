@@ -15,7 +15,7 @@ import {
 } from 'react-icons/hi';
 
 export function StudentPortalDashboard() {
-  const { user, studentInfo } = useAuth();
+  const { studentInfo } = useAuth();
   const { showToast } = useToast();
   const [studentData, setStudentData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
