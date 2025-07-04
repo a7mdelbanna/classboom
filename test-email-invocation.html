@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Email Edge Function</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Test Email Edge Function</h1>
+  <button onclick="testEmail()">Test Email Function</button>
+  <div id="result"></div>
+
+  <script>
+    // Initialize Supabase client
+    const supabaseUrl = 'https://hokgyujgsvdfhpfrorsu.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhva2d5dWpnc3ZkZmhwZnJvcnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0Nzc0OTIsImV4cCI6MjA2NzA1MzQ5Mn0.hTqKW059EmFC3ZOivtMFA6rRCpXy_KJ67Yx2EKusyyo';
+    const { createClient } = supabase;
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    async function testEmail() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Testing...';
+
+      try {
+        // Test the Edge Function directly
+        const { data, error } = await supabaseClient.functions.invoke('send-email', {
+          body: {
+            to: 'test@example.com',
+            subject: 'Test Email from Edge Function',
+            html: '<p>This is a test email to verify the Edge Function is working.</p>',
+            text: 'This is a test email to verify the Edge Function is working.'
+          }
+        });
+
+        if (error) {
+          resultDiv.innerHTML = `<pre style="color: red;">Error: ${JSON.stringify(error, null, 2)}</pre>`;
+        } else {
+          resultDiv.innerHTML = `<pre style="color: green;">Success: ${JSON.stringify(data, null, 2)}</pre>`;
+        }
+      } catch (err) {
+        resultDiv.innerHTML = `<pre style="color: red;">Exception: ${err.message}</pre>`;
+      }
+    }
+  </script>
+</body>
+</html>

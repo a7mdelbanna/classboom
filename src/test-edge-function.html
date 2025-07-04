@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Edge Function</title>
+</head>
+<body>
+  <h1>Test Edge Function Directly</h1>
+  <button id="testBtn">Send Test Email</button>
+  <pre id="result"></pre>
+
+  <script type="module">
+    import { supabase } from './lib/supabase.ts';
+    
+    document.getElementById('testBtn').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result');
+      resultEl.textContent = 'Sending...';
+      
+      try {
+        console.log('Invoking Edge Function...');
+        const { data, error } = await supabase.functions.invoke('send-email', {
+          body: {
+            to: 'ahmedoshkaa@gmail.com',
+            subject: 'Direct Test from ClassBoom',
+            html: '<h1>Test Email</h1><p>This is a direct test of the Edge Function.</p>',
+            text: 'Test Email - This is a direct test of the Edge Function.'
+          }
+        });
+        
+        console.log('Response:', { data, error });
+        
+        if (error) {
+          resultEl.textContent = `Error: ${JSON.stringify(error, null, 2)}`;
+        } else {
+          resultEl.textContent = `Success: ${JSON.stringify(data, null, 2)}`;
+        }
+      } catch (err) {
+        console.error('Exception:', err);
+        resultEl.textContent = `Exception: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

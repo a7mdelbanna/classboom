@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Login Flow</title>
+</head>
+<body>
+  <h1>Debug Login Flow</h1>
+  <p>Open browser console (F12) and try logging in as ahmedoshkaa@gmail.com</p>
+  
+  <script>
+    // Override console.log to capture all logs
+    const originalLog = console.log;
+    const logs = [];
+    
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      logs.push({
+        time: new Date().toISOString(),
+        message: args.join(' ')
+      });
+      
+      // Display logs on page
+      const logDiv = document.getElementById('logs');
+      if (logDiv) {
+        logDiv.innerHTML = logs.map(l => 
+          `<div><strong>${l.time}:</strong> ${l.message}</div>`
+        ).join('');
+      }
+    };
+    
+    console.log('Debug logging enabled. Navigate to login page and try logging in.');
+  </script>
+  
+  <div id="logs" style="margin-top: 20px; padding: 10px; background: #f0f0f0; font-family: monospace; font-size: 12px;"></div>
+</body>
+</html>
