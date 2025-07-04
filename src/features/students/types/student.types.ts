@@ -21,6 +21,7 @@ export interface Student {
   status: 'active' | 'inactive' | 'graduated' | 'dropped';
   notes: string | null;
   avatar_url: string | null;
+  avatar_uploaded_at: string | null;
   // Authentication fields
   user_id: string | null;
   can_login: boolean;

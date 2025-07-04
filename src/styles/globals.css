@@ -233,3 +233,34 @@
     display: none;
   }
 }
+
+/* React Image Crop styles */
+.ReactCrop__crop-selection {
+  border: 2px solid #f97316; /* Orange-500 */
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
+}
+
+.ReactCrop--circular-crop .ReactCrop__crop-selection {
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
+}
+
+.ReactCrop__drag-handle {
+  width: 10px;
+  height: 10px;
+  background-color: #f97316; /* Orange-500 */
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.ReactCrop__drag-handle:hover {
+  background-color: #ea580c; /* Orange-600 */
+}
+
+/* Dark mode adjustments for crop */
+.dark .ReactCrop__crop-selection {
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.7);
+}
+
+.dark .ReactCrop--circular-crop .ReactCrop__crop-selection {
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.7);
+}

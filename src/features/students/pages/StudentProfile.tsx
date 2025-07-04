@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { StudentService } from '../services/studentService';
 import { PortalAccessCard } from '../components/PortalAccessCard';
 import { ParentInviteCard } from '../../parents/components/ParentInviteCard';
+import { AvatarUpload } from '../components/AvatarUpload';
 import type { Student } from '../types/student.types';
 
 export function StudentProfile() {
@@ -122,19 +123,17 @@ export function StudentProfile() {
           >
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
               <div className="text-center mb-6">
-                {student.avatar_url ? (
-                  <img
-                    src={student.avatar_url}
-                    alt={student.full_name}
-                    className="w-24 h-24 rounded-full mx-auto mb-4"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-orange-600 dark:text-orange-400 text-3xl font-bold">
-                      {student.full_name?.charAt(0) || '?'}
-                    </span>
-                  </div>
-                )}
+                <AvatarUpload
+                  studentId={student.id}
+                  currentAvatarUrl={student.avatar_url}
+                  studentName={student.full_name || `${student.first_name} ${student.last_name}`}
+                  onUploadComplete={(avatarUrl) => {
+                    setStudent({ ...student, avatar_url: avatarUrl });
+                  }}
+                  onDeleteComplete={() => {
+                    setStudent({ ...student, avatar_url: null });
+                  }}
+                />
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{student.full_name}</h2>
                 <p className="text-gray-600 dark:text-gray-400">{student.email}</p>
                 <div className="mt-3">{getStatusBadge(student.status)}</div>
