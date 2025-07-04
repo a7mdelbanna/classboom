@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/context/AuthContext';
 import { StudentService } from '../services/studentService';
+import { AvatarService } from '../services/avatarService';
 import { CustomSelect } from '../../../components/CustomSelect';
 import { CustomCheckbox } from '../../../components/CustomCheckbox';
 import { MultiSelect } from '../../../components/MultiSelect';
 import { DatePicker } from '../../../components/DatePicker';
+import { AvatarUploadForm } from '../components/AvatarUploadForm';
 import { useToast } from '../../../context/ToastContext';
 import { getInstitutionConfig, TERMINOLOGY_CONFIG, type InstitutionType } from '../../../types/institution.types';
 import { getSkillLevels } from '../types/skill-levels.types';
@@ -114,6 +116,10 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
   const [parentInfo, setParentInfo] = useState<ParentInfo>({});
   const [medicalInfo, setMedicalInfo] = useState<MedicalInfo>({});
 
+  // Avatar upload state
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarBlob, setAvatarBlob] = useState<Blob | null>(null);
+
   // Load available courses for the school
   useEffect(() => {
     const loadCourses = async () => {
@@ -164,14 +170,32 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
         medical_info: (medicalInfo.blood_type || medicalInfo.allergies?.length) ? medicalInfo : undefined
       };
 
+      let createdStudent: Student;
+      
       if (student) {
         // Update existing student
-        await StudentService.updateStudent(student.id, studentData);
+        createdStudent = await StudentService.updateStudent(student.id, studentData);
         showToast(`${terminology.student} updated successfully!`, 'success');
       } else {
         // Create new student
-        await StudentService.createStudent(studentData);
+        createdStudent = await StudentService.createStudent(studentData);
         showToast(`${terminology.student} created successfully!`, 'success');
+      }
+
+      // Upload avatar if one was selected
+      if (avatarBlob && avatarFile && createdStudent) {
+        try {
+          // Convert blob to file for upload
+          const avatarFileToUpload = new File([avatarBlob], avatarFile.name, {
+            type: avatarFile.type
+          });
+          
+          await AvatarService.uploadAvatar(createdStudent.id, avatarFileToUpload);
+          showToast('Avatar uploaded successfully!', 'success');
+        } catch (avatarError: any) {
+          console.error('Avatar upload failed:', avatarError);
+          showToast('Student saved, but avatar upload failed. You can upload it later.', 'warning');
+        }
       }
       
       if (onSuccess) {
@@ -418,6 +442,22 @@ export function AddStudentNew({ student, onSuccess, onCancel, isModal = false }:
                         />
                       </div>
                     </div>
+                  </div>
+
+                  {/* Avatar Upload */}
+                  <div>
+                    <AvatarUploadForm
+                      onImageSelected={(file: File, blob: Blob) => {
+                        setAvatarFile(file);
+                        setAvatarBlob(blob);
+                      }}
+                      onImageRemoved={() => {
+                        setAvatarFile(null);
+                        setAvatarBlob(null);
+                      }}
+                      currentImageUrl={student?.avatar_url}
+                      studentName={`${formData.first_name} ${formData.last_name}`.trim() || 'New Student'}
+                    />
                   </div>
 
                   {/* Social Media */}
