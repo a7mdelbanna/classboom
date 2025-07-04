@@ -58,7 +58,7 @@ export function CustomSelect({ value, onChange, options, placeholder = "Select..
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-[100] w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto"
+            className="absolute z-[9999] w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto"
           >
             {options.map((option) => (
               <button

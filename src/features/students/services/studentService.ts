@@ -2,6 +2,7 @@ import { supabase } from '../../../lib/supabase';
 import { EmailService } from '../../../services/emailServiceClient';
 import { ActivityService } from '../../../services/activityService';
 import type { Student, CreateStudentInput } from '../types/student.types';
+import type { AdvancedFilterState } from '../components/AdvancedFilters';
 
 export class StudentService {
   // Helper to get current user's school ID
@@ -83,7 +84,7 @@ export class StudentService {
     return schoolId;
   }
 
-  static async getStudents(search?: string, status?: string): Promise<Student[]> {
+  static async getStudents(search?: string, status?: string, advancedFilters?: AdvancedFilterState): Promise<Student[]> {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
@@ -93,12 +94,49 @@ export class StudentService {
         .eq('school_id', schoolId)
         .order('enrolled_at', { ascending: false });
 
+      // Basic filters
       if (status && status !== 'all') {
         query = query.eq('status', status);
       }
 
       if (search) {
         query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,student_code.ilike.%${search}%`);
+      }
+
+      // Advanced filters
+      if (advancedFilters) {
+        // Date filters
+        if (advancedFilters.enrolledAfter) {
+          query = query.gte('enrolled_at', advancedFilters.enrolledAfter);
+        }
+        if (advancedFilters.enrolledBefore) {
+          query = query.lte('enrolled_at', advancedFilters.enrolledBefore);
+        }
+        if (advancedFilters.bornAfter) {
+          query = query.gte('date_of_birth', advancedFilters.bornAfter);
+        }
+        if (advancedFilters.bornBefore) {
+          query = query.lte('date_of_birth', advancedFilters.bornBefore);
+        }
+
+        // Demographic filters
+        if (advancedFilters.countries && advancedFilters.countries.length > 0) {
+          query = query.in('country', advancedFilters.countries);
+        }
+        if (advancedFilters.cities && advancedFilters.cities.length > 0) {
+          query = query.in('city', advancedFilters.cities);
+        }
+        if (advancedFilters.skillLevels && advancedFilters.skillLevels.length > 0) {
+          query = query.in('skill_level', advancedFilters.skillLevels);
+        }
+
+        // Contact filters (these will need client-side filtering for JSON fields)
+        if (advancedFilters.hasEmail) {
+          query = query.not('email', 'is', null);
+        }
+        if (advancedFilters.hasPhone) {
+          query = query.not('phone', 'is', null);
+        }
       }
 
       const { data, error } = await query;
@@ -108,10 +146,119 @@ export class StudentService {
         throw new Error(error.message);
       }
 
-      return data || [];
+      let students = data || [];
+
+      // Client-side filtering for complex JSON field filters
+      if (advancedFilters) {
+        students = students.filter(student => {
+          // Course interest filter
+          if (advancedFilters.interestedCourses && advancedFilters.interestedCourses.length > 0) {
+            const studentCourses = student.interested_courses || [];
+            const hasMatchingCourse = advancedFilters.interestedCourses.some(course => 
+              studentCourses.includes(course)
+            );
+            if (!hasMatchingCourse) return false;
+          }
+
+          // Social media filter
+          if (advancedFilters.hasSocialMedia) {
+            const socialMedia = student.social_media || {};
+            const hasSocialMedia = Object.values(socialMedia).some(value => 
+              value && value.toString().trim() !== ''
+            );
+            if (!hasSocialMedia) return false;
+          }
+
+          // Parent info filter
+          if (advancedFilters.hasParentInfo) {
+            const parentInfo = student.parent_info || {};
+            const hasParentInfo = Object.values(parentInfo).some(value => 
+              value && value.toString().trim() !== ''
+            );
+            if (!hasParentInfo) return false;
+          }
+
+          // Emergency contact filter
+          if (advancedFilters.hasEmergencyContact) {
+            const emergencyContact = student.emergency_contact || {};
+            const hasEmergencyContact = emergencyContact.name && emergencyContact.phone;
+            if (!hasEmergencyContact) return false;
+          }
+
+          // Medical info filter
+          if (advancedFilters.hasMedicalInfo) {
+            const medicalInfo = student.medical_info || {};
+            const hasMedicalInfo = Object.values(medicalInfo).some(value => {
+              if (Array.isArray(value)) return value.length > 0;
+              return value && value.toString().trim() !== '';
+            });
+            if (!hasMedicalInfo) return false;
+          }
+
+          return true;
+        });
+      }
+
+      return students;
     } catch (error) {
       console.error('Error in getStudents:', error);
       throw error;
+    }
+  }
+
+  // Helper methods for filter options
+  static async getAvailableCities(): Promise<string[]> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data, error } = await supabase
+        .from('students')
+        .select('city')
+        .eq('school_id', schoolId)
+        .not('city', 'is', null);
+
+      if (error) {
+        console.error('Error fetching cities:', error);
+        return [];
+      }
+
+      const cities = [...new Set(data?.map(item => item.city).filter(city => city && city.trim() !== ''))];
+      return cities.sort();
+    } catch (error) {
+      console.error('Error in getAvailableCities:', error);
+      return [];
+    }
+  }
+
+  static async getAvailableCourses(): Promise<string[]> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data, error } = await supabase
+        .from('students')
+        .select('interested_courses')
+        .eq('school_id', schoolId);
+
+      if (error) {
+        console.error('Error fetching courses:', error);
+        return [];
+      }
+
+      const allCourses = new Set<string>();
+      data?.forEach(student => {
+        if (student.interested_courses && Array.isArray(student.interested_courses)) {
+          student.interested_courses.forEach(course => {
+            if (course && course.trim() !== '') {
+              allCourses.add(course);
+            }
+          });
+        }
+      });
+
+      return Array.from(allCourses).sort();
+    } catch (error) {
+      console.error('Error in getAvailableCourses:', error);
+      return [];
     }
   }
 

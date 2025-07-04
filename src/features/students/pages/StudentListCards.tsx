@@ -8,6 +8,7 @@ import { useAuth } from '../../auth/context/AuthContext';
 import { getInstitutionConfig, TERMINOLOGY_CONFIG, type InstitutionType } from '../../../types/institution.types';
 import { AddStudentNew } from './AddStudentNew';
 import { BulkImportModal } from '../components/BulkImportModal';
+import { AdvancedFilters, type AdvancedFilterState } from '../components/AdvancedFilters';
 import type { Student } from '../types/student.types';
 
 // Avatar generation function
@@ -33,6 +34,11 @@ export function StudentListCards() {
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
+  
+  // Advanced filtering state
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({});
+  const [availableCourses, setAvailableCourses] = useState<string[]>([]);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   // Get institution terminology
   const institutionType = schoolInfo?.settings?.institution_type || 'public_school';
@@ -41,19 +47,34 @@ export function StudentListCards() {
 
   useEffect(() => {
     loadStudents();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, advancedFilters]);
 
-  // School ID is now stable - no need for debug intervals
+  useEffect(() => {
+    loadFilterOptions();
+  }, []);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const data = await StudentService.getStudents(search, statusFilter);
+      const data = await StudentService.getStudents(search, statusFilter, advancedFilters);
       setStudents(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load students');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFilterOptions = async () => {
+    try {
+      const [courses, cities] = await Promise.all([
+        StudentService.getAvailableCourses(),
+        StudentService.getAvailableCities()
+      ]);
+      setAvailableCourses(courses);
+      setAvailableCities(cities);
+    } catch (err: any) {
+      console.error('Failed to load filter options:', err);
     }
   };
 
@@ -201,6 +222,15 @@ export function StudentListCards() {
             </div>
           </div>
         </div>
+
+        {/* Advanced Filters */}
+        <AdvancedFilters
+          filters={advancedFilters}
+          onFiltersChange={setAdvancedFilters}
+          institutionType={institutionType as InstitutionType}
+          availableCourses={availableCourses}
+          availableCities={availableCities}
+        />
 
         {/* Error State */}
         {error && (
@@ -379,6 +409,7 @@ export function StudentListCards() {
             setShowAddModal(false);
             setEditingStudent(null);
             loadStudents();
+            loadFilterOptions();
           }}
           onCancel={() => {
             setShowAddModal(false);
@@ -395,6 +426,7 @@ export function StudentListCards() {
         onSuccess={() => {
           setShowBulkImportModal(false);
           loadStudents();
+          loadFilterOptions();
           showToast(`${terminology.students} imported successfully!`, 'success');
         }}
       />
