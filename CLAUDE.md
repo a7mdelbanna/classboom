@@ -7,34 +7,57 @@
 3. **Check for MCP tools** (tools starting with `mcp_` or `mcp__`)
 4. **The authentication system is now COMPLETE!** 🎉
 
+## 🚨 CRITICAL LESSON LEARNED: RLS Policy Disaster (2025-07-06)
+
+**NEVER ADD RLS POLICIES WITHOUT CAREFUL CONSIDERATION!**
+
+**What went catastrophically wrong:**
+- While trying to fix staff portal activation, I added new RLS policies
+- These policies BROKE THE ENTIRE APP's data retrieval
+- Students count showed 0, courses wouldn't load, staff data disappeared
+- Activities stopped showing, EVERYTHING was broken
+- The app became completely unusable
+
+**The terrible approach that broke everything:**
+```sql
+-- DON'T EVER DO THIS! These policies broke the entire app:
+CREATE POLICY "Staff can view their own record" ON public.staff FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Staff can read their school" ON public.schools FOR SELECT TO authenticated USING (id IN (SELECT school_id FROM public.staff WHERE user_id = auth.uid()));
+CREATE POLICY "Allow anonymous to read staff for activation" ON public.staff;
+CREATE POLICY "Allow anonymous to read schools for staff activation" ON public.schools;
+```
+
+**Why it was a disaster:**
+1. Added restrictive policies without understanding existing RLS setup
+2. Changed authentication check order in AuthContext (moved staff before school owner)
+3. Modified working authentication flow without proper testing
+4. Created policies that conflicted with existing multi-tenant architecture
+5. The policies were too restrictive and prevented legitimate data access
+
+**What I learned - NEVER DO THIS AGAIN:**
+1. NEVER add RLS policies without fully understanding existing setup
+2. NEVER change authentication check order when it's working
+3. NEVER modify `.single()` to `.maybeSingle()` across the board
+4. Test in isolation before applying database-level changes
+5. RLS policies can completely break an app - treat them with extreme caution
+
+**The fix that saved the app:**
+```sql
+-- Had to emergency remove all the problematic policies
+DROP POLICY IF EXISTS "Allow anonymous to read staff for activation" ON public.staff;
+DROP POLICY IF EXISTS "Allow anonymous to read schools for staff activation" ON public.schools;
+DROP POLICY IF EXISTS "Staff can view their own record" ON public.staff;
+DROP POLICY IF EXISTS "Staff can update their own record" ON public.staff;
+DROP POLICY IF EXISTS "Staff can read their school" ON public.schools;
+```
+
 ## ✅ FIXED: Staff Email Invitation Issue (2025-07-05)
 
-**ROOT CAUSE FOUND:** The Edge Function was returning undefined response data, causing false error messages even though emails were being sent successfully.
-
-**The Real Problem:**
-- Edge Function was checking for `data.id` which didn't exist in Resend v3 response
-- emailService was showing success even when errors occurred
-- Staff invitations appeared to fail but were actually being delivered
-
-**Fix Applied:**
-1. **Updated Edge Function** (`supabase/functions/send-email/index.ts`)
-   - Fixed response handling for Resend v3 API
-   - Added comprehensive error logging
-   - Proper handling of undefined responses
-2. **Fixed Email Service** (`emailServiceClient.ts`)
-   - Added proper error propagation
-   - Better response validation
-   - Detailed console logging
-3. **Enhanced Staff Cards**
-   - Added visual invitation status indicators
-   - Resend button for expired invitations
-   - Expiration countdown display
-
-**Result:**
+**This fix was successful and didn't break anything:**
+- Updated Edge Function for Resend v3 API
+- Fixed email service response handling
+- Added visual invitation status indicators
 - ✅ Staff invitation emails now send successfully
-- ✅ Proper error messages when issues occur
-- ✅ Visual feedback for invitation status
-- ✅ Beautiful HTML emails delivered via Resend
 
 ## ✅ FIXED: Students Disappearing Issue (2025-07-03)
 
