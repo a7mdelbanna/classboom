@@ -45,6 +45,8 @@ export function RoleProtectedRoute({
         return <Navigate to="/parent-portal" replace />;
       case 'teacher':
         return <Navigate to="/teacher-portal" replace />;
+      case 'staff':
+        return <Navigate to="/staff-portal" replace />;
       default:
         return <Navigate to="/login" replace />;
     }
@@ -67,6 +69,8 @@ export function useRoleBasedRedirect() {
         return '/parent-portal';
       case 'teacher':
         return '/teacher-portal';
+      case 'staff':
+        return '/staff-portal';
       default:
         return '/login';
     }

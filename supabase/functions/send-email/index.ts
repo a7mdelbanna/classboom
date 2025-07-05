@@ -33,10 +33,15 @@ serve(async (req) => {
     // Initialize Resend with the API key
     const resend = new Resend(apiKey)
 
+    // Get FROM_EMAIL from environment or use default
+    const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@classboom.online'
+    const fromName = Deno.env.get('FROM_NAME') || 'ClassBoom'
+
     const { to, subject, html, text } = await req.json()
 
     console.log(`Attempting to send email to: ${to}`)
     console.log(`Subject: ${subject}`)
+    console.log(`From: ${fromName} <${fromEmail}>`)
     console.log(`API Key present: ${apiKey ? 'Yes' : 'No'}`)
     console.log(`API Key length: ${apiKey ? apiKey.length : 0}`)
 
@@ -44,7 +49,7 @@ serve(async (req) => {
     try {
       console.log('Calling Resend API...')
       data = await resend.emails.send({
-        from: 'ClassBoom <onboarding@resend.dev>',
+        from: `${fromName} <${fromEmail}>`,
         to,
         subject,
         html,

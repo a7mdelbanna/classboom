@@ -145,27 +145,6 @@ export class StaffService {
     }
   }
 
-  // Get staff member by user ID (for portal access)
-  static async getStaffByUserId(userId: string): Promise<Staff | null> {
-    try {
-      const { data: staff, error } = await supabase
-        .from('staff')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('portal_access_enabled', true)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw new Error(error.message);
-      }
-      
-      return this.enrichStaffData(staff);
-    } catch (error) {
-      console.error('Error fetching staff by user ID:', error);
-      return null;
-    }
-  }
 
   // Update staff member
   static async updateStaff(id: string, updates: Partial<StaffFormData>): Promise<Staff> {
@@ -340,7 +319,7 @@ export class StaffService {
       const token = EmailService.generateInvitationToken();
       
       // Create activation link
-      const baseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin || 'http://localhost:5174';
       const activationLink = `${baseUrl}/activate/staff/${token}`;
       
       // Update staff with invitation details
@@ -451,6 +430,38 @@ export class StaffService {
       return data;
     } catch (error) {
       console.error('Error calculating payroll:', error);
+      throw error;
+    }
+  }
+
+  // Get staff by user ID (for staff portal)
+  static async getStaffByUserId(userId: string): Promise<Staff> {
+    try {
+      const { data, error } = await supabase
+        .from('staff')
+        .select(`
+          *,
+          school:schools(
+            id,
+            name,
+            logo_url,
+            address,
+            phone,
+            email
+          )
+        `)
+        .eq('user_id', userId)
+        .single();
+
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('Staff member not found');
+      
+      return {
+        ...data,
+        full_name: `${data.first_name} ${data.last_name}`
+      };
+    } catch (error) {
+      console.error('Error fetching staff by user ID:', error);
       throw error;
     }
   }

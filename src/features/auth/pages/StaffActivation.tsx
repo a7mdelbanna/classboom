@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
-import { EmailService } from '../../../services/emailService';
+import { EmailService } from '../../../services/emailServiceClient';
 import { useToast } from '../../../context/ToastContext';
 import { HiOutlineEye, HiOutlineEyeOff, HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
 
@@ -40,53 +40,35 @@ export function StaffActivation() {
     try {
       setLoading(true);
       
-      // Find staff member by invitation token
-      const { data: staff, error } = await supabase
-        .from('staff')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          email,
-          role,
-          department,
-          invite_token,
-          invite_sent_at,
-          portal_access_enabled,
-          school:schools(name)
-        `)
-        .eq('invite_token', token)
-        .eq('can_login', true)
-        .single();
-
-      if (error || !staff) {
-        setError('Invalid or expired invitation link');
-        return;
-      }
-
-      // Check if already activated
-      if (staff.portal_access_enabled) {
-        setError('This invitation has already been used');
-        return;
-      }
-
-      // Check if invitation is expired (48 hours)
-      const inviteSentAt = new Date(staff.invite_sent_at);
-      const expiresAt = new Date(inviteSentAt.getTime() + 48 * 60 * 60 * 1000);
+      console.log('Validating token:', token);
       
-      if (new Date() > expiresAt) {
-        setError('This invitation has expired');
+      // Use the secure function to validate the token
+      const { data, error } = await supabase.rpc('validate_staff_activation_token', {
+        p_token: token
+      });
+
+      console.log('Validation result:', { data, error });
+
+      if (error) {
+        console.error('Token validation error:', error);
+        setError('Failed to validate invitation');
         return;
       }
 
+      if (!data || !data.success) {
+        setError(data?.error || 'Invalid or expired invitation link');
+        return;
+      }
+
+      // Set the staff info from the validated data
       setStaffInfo({
-        id: staff.id,
-        first_name: staff.first_name,
-        last_name: staff.last_name,
-        email: staff.email,
-        role: staff.role,
-        department: staff.department,
-        school_name: staff.school?.name || 'School'
+        id: data.data.id,
+        first_name: data.data.first_name,
+        last_name: data.data.last_name,
+        email: data.data.email,
+        role: data.data.role,
+        department: data.data.department,
+        school_name: data.data.school_name
       });
     } catch (error: any) {
       console.error('Error validating token:', error);
@@ -155,8 +137,26 @@ export function StaffActivation() {
 
       showToast('Your staff account has been activated successfully!', 'success');
       
-      // Redirect to staff portal
-      navigate('/staff-portal');
+      // Check if user is immediately authenticated (no email confirmation required)
+      if (authData.session) {
+        // User is authenticated, redirect to staff portal
+        navigate('/staff-portal');
+      } else {
+        // Email confirmation required, sign them in manually
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: staffInfo.email,
+          password: password
+        });
+        
+        if (signInError) {
+          console.error('Sign in after activation failed:', signInError);
+          showToast('Account activated! Please sign in to continue.', 'success');
+          navigate('/login');
+        } else {
+          // Successfully signed in, redirect to staff portal
+          navigate('/staff-portal');
+        }
+      }
     } catch (error: any) {
       console.error('Error activating account:', error);
       setError(error.message || 'Failed to activate account');

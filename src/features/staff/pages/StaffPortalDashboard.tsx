@@ -34,6 +34,7 @@ export function StaffPortalDashboard() {
       }
     } catch (error) {
       console.error('Error loading staff data:', error);
+      setStaff(null); // Set to null if there's an error
     } finally {
       setLoading(false);
     }

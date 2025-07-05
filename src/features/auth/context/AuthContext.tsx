@@ -3,7 +3,7 @@ import { type User, type Session } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase';
 import type { SchoolSettings } from '../../../types/institution.types';
 
-export type UserRole = 'school_owner' | 'teacher' | 'student' | 'parent' | null;
+export type UserRole = 'school_owner' | 'teacher' | 'staff' | 'student' | 'parent' | null;
 
 interface SchoolInfo {
   id: string;
@@ -202,6 +202,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data: { ...user.user_metadata, school_id: newSchool.id }
           });
         }
+      }
+      
+      // 4. Check if user is a staff member
+      const { data: staffMember, error: staffError } = await supabase
+        .from('staff')
+        .select('id, first_name, last_name, role, school_id, portal_access_enabled')
+        .eq('user_id', user.id)
+        .eq('portal_access_enabled', true)
+        .single();
+      
+      if (staffMember && !staffError) {
+        setUserRole('staff');
+        return;
       }
       
       // TODO: Add teacher role check when teacher table is created
