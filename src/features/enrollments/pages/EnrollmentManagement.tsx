@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../../context/ToastContext';
+import { useSearchParams } from 'react-router-dom';
 import { EnrollmentService } from '../services/enrollmentService';
 import { CoursesService } from '../../courses/services/coursesService';
 import { StudentService } from '../../students/services/studentService';
@@ -13,6 +14,7 @@ import { EnrollmentModal } from '../components/EnrollmentModal';
 import { HiOutlineAcademicCap, HiOutlineCurrencyDollar, HiOutlineUserGroup, HiOutlineClock } from 'react-icons/hi';
 
 export function EnrollmentManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [courses, setCourses] = useState<SchoolCourse[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -32,6 +34,25 @@ export function EnrollmentManagement() {
   useEffect(() => {
     loadData();
   }, [filters]);
+
+  // Check URL params on mount
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setShowModal(true);
+      // Clean up the URL
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Listen for custom event
+  useEffect(() => {
+    const handleOpenModal = () => setShowModal(true);
+    window.addEventListener('openAddEnrollmentModal', handleOpenModal);
+    
+    return () => {
+      window.removeEventListener('openAddEnrollmentModal', handleOpenModal);
+    };
+  }, []);
 
   const loadData = async () => {
     try {

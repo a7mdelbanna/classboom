@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { type User, type Session } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase';
+import type { SchoolSettings } from '../../../types/institution.types';
 
 export type UserRole = 'school_owner' | 'teacher' | 'student' | 'parent' | null;
 
@@ -10,22 +11,7 @@ interface SchoolInfo {
   subscription_plan: string;
   subscription_status: string;
   trial_ends_at: string | null;
-  settings?: {
-    theme?: {
-      primary: string;
-      secondary: string;
-    };
-    terminology?: {
-      student: string;
-      students: string;
-      teacher: string;
-      teachers: string;
-      class: string;
-      classes: string;
-    };
-    institution_type?: string;
-    [key: string]: any;
-  };
+  settings?: SchoolSettings;
 }
 
 // Additional context for students and parents

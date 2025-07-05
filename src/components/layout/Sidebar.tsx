@@ -19,7 +19,9 @@ import {
   HiOutlineDocumentReport,
   HiOutlineCalendar,
   HiOutlineBookOpen,
-  HiOutlineClipboardCheck
+  HiOutlineClipboardCheck,
+  HiOutlineUsers,
+  HiOutlineBriefcase
 } from 'react-icons/hi';
 
 interface SidebarProps {
@@ -40,7 +42,7 @@ interface MenuItem {
 export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
   const location = useLocation();
   const { schoolInfo } = useAuth();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['students', 'courses']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['students', 'courses', 'enrollments', 'staff']);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
   // Get terminology from school settings
@@ -117,7 +119,61 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
       id: 'enrollments',
       label: 'Enrollments',
       icon: HiOutlineClipboardCheck,
-      path: '/enrollments'
+      children: [
+        {
+          id: 'enrollments-all',
+          label: 'View All',
+          icon: HiOutlineClipboardList,
+          path: '/enrollments'
+        },
+        {
+          id: 'enrollments-add',
+          label: 'Add Enrollment',
+          icon: HiOutlinePlus,
+          action: () => {
+            // Navigate to enrollments page and trigger add modal
+            if (location.pathname !== '/enrollments') {
+              window.location.href = '/enrollments?action=add';
+            } else {
+              // If already on enrollments page, trigger the add enrollment modal
+              window.dispatchEvent(new CustomEvent('openAddEnrollmentModal'));
+            }
+          }
+        }
+      ]
+    },
+    {
+      id: 'staff',
+      label: 'Staff',
+      icon: HiOutlineBriefcase,
+      children: [
+        {
+          id: 'staff-all',
+          label: 'View All',
+          icon: HiOutlineClipboardList,
+          path: '/staff'
+        },
+        {
+          id: 'staff-add',
+          label: 'Add Staff',
+          icon: HiOutlinePlus,
+          action: () => {
+            // Navigate to staff page and trigger add modal
+            if (location.pathname !== '/staff') {
+              window.location.href = '/staff?action=add';
+            } else {
+              // If already on staff page, trigger the add staff modal
+              window.dispatchEvent(new CustomEvent('openAddStaffModal'));
+            }
+          }
+        },
+        {
+          id: 'staff-reports',
+          label: 'Reports',
+          icon: HiOutlineDocumentReport,
+          path: '/staff/reports'
+        }
+      ]
     },
     {
       id: 'classes',

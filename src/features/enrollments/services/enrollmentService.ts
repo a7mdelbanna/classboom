@@ -114,15 +114,15 @@ export class EnrollmentService {
           course_id: data.course_id,
           enrollment_date: new Date().toISOString().split('T')[0],
           start_date: data.start_date,
-          end_date: data.end_date,
+          end_date: data.end_date && data.end_date !== '' ? data.end_date : null,
           status: data.status || 'pending',
           pricing_model: data.pricing_model,
           price_amount: data.price_amount,
           currency: data.currency || 'USD',
-          total_sessions: data.total_sessions,
+          total_sessions: data.total_sessions || null,
           payment_status: data.payment_status || 'pending',
-          next_payment_date: nextPaymentDate,
-          notes: data.notes,
+          next_payment_date: nextPaymentDate || null,
+          notes: data.notes || null,
           created_by: user?.id
         })
         .select()
@@ -262,7 +262,17 @@ export class EnrollmentService {
         }
       }
 
+      // Clean up the update data - convert empty strings to null for date fields
       const updateData: any = { ...updates };
+      if (updateData.end_date === '') {
+        updateData.end_date = null;
+      }
+      if (updateData.total_sessions === '') {
+        updateData.total_sessions = null;
+      }
+      if (updateData.notes === '') {
+        updateData.notes = null;
+      }
       if (nextPaymentDate !== undefined) {
         updateData.next_payment_date = nextPaymentDate;
       }

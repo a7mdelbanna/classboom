@@ -46,7 +46,14 @@ export function EnrollmentModal({
   const [saving, setSaving] = useState(false);
 
   // Get available pricing models from school settings
-  const availablePricingModels = schoolInfo?.settings?.pricing_models || ['per_session', 'monthly'];
+  const defaultPricingModels: PricingModel[] = ['per_session', 'monthly', 'quarterly', 'semester', 'annual', 'package'];
+  
+  // Use pricing models from settings if available, otherwise use all models
+  const availablePricingModels = schoolInfo?.settings?.pricing_models && 
+    Array.isArray(schoolInfo.settings.pricing_models) && 
+    schoolInfo.settings.pricing_models.length > 0
+      ? schoolInfo.settings.pricing_models
+      : defaultPricingModels;
 
   useEffect(() => {
     if (enrollment) {

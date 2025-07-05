@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ThemeSettings } from './ThemeSettings';
+import { SchoolSettings } from '../components/SchoolSettings';
 import { 
   HiOutlineColorSwatch,
   HiOutlineUser,
@@ -86,7 +87,7 @@ export function SettingsPage() {
           {activeTab === 'school' && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">School Settings</h2>
-              <p className="text-gray-600 dark:text-gray-400">School settings coming soon...</p>
+              <SchoolSettings />
             </div>
           )}
           

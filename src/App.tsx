@@ -21,6 +21,7 @@ import { StudentProfile } from './features/students/pages/StudentProfile';
 import { SettingsPage } from './features/settings/pages/SettingsPage';
 import { CourseManagement } from './features/courses';
 import { EnrollmentManagement } from './features/enrollments';
+import { StaffManagement } from './features/staff';
 import { StudentPortalDashboard } from './features/students/pages/StudentPortalDashboard';
 import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
 import { LandingPage } from './features/landing/pages/LandingPage';
@@ -68,6 +69,10 @@ function App() {
             
             {/* Enrollment Management Routes */}
             <Route path="/enrollments" element={<EnrollmentManagement />} />
+            
+            {/* Staff Management Routes */}
+            <Route path="/staff" element={<StaffManagement />} />
+            <Route path="/staff/reports" element={<div>Staff Reports Page</div>} />
             
             {/* Placeholder routes for other sections */}
             <Route path="/classes" element={<div>Classes Page</div>} />
