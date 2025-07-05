@@ -30,6 +30,62 @@ export function StaffActivation() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
 
+  // Get default permissions based on staff role
+  const getDefaultPermissions = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return {
+          can_view_all_students: true,
+          can_edit_students: true,
+          can_manage_enrollments: true,
+          can_mark_attendance: true,
+          can_view_finances: true,
+          can_manage_staff: true,
+          can_send_announcements: true
+        };
+      case 'manager':
+        return {
+          can_view_all_students: true,
+          can_edit_students: true,
+          can_manage_enrollments: true,
+          can_mark_attendance: true,
+          can_view_finances: true,
+          can_manage_staff: false,
+          can_send_announcements: true
+        };
+      case 'teacher':
+        return {
+          can_view_all_students: false,
+          can_edit_students: false,
+          can_manage_enrollments: false,
+          can_mark_attendance: true,
+          can_view_finances: false,
+          can_manage_staff: false,
+          can_send_announcements: false
+        };
+      case 'support':
+        return {
+          can_view_all_students: true,
+          can_edit_students: false,
+          can_manage_enrollments: false,
+          can_mark_attendance: false,
+          can_view_finances: false,
+          can_manage_staff: false,
+          can_send_announcements: false
+        };
+      default:
+        return {
+          can_view_all_students: false,
+          can_edit_students: false,
+          can_manage_enrollments: false,
+          can_mark_attendance: false,
+          can_view_finances: false,
+          can_manage_staff: false,
+          can_send_announcements: false
+        };
+    }
+  };
+
   useEffect(() => {
     if (token) {
       validateToken();
@@ -107,25 +163,31 @@ export function StaffActivation() {
             first_name: staffInfo.first_name,
             last_name: staffInfo.last_name,
             role: 'staff',
-            staff_id: staffInfo.id
+            staff_id: staffInfo.id,
+            staff_role: staffInfo.role // Store the specific staff role
           }
         }
       });
 
       if (authError) throw authError;
 
-      // Update staff record
-      const { error: updateError } = await supabase
-        .from('staff')
-        .update({
-          user_id: authData.user?.id,
-          portal_access_enabled: true,
-          account_created_at: new Date().toISOString(),
-          invite_token: null // Clear the token
-        })
-        .eq('id', staffInfo.id);
+      // Get default permissions based on role
+      const defaultPermissions = getDefaultPermissions(staffInfo.role);
+
+      // Use the activate function to avoid race conditions
+      const { data: activationResult, error: updateError } = await supabase
+        .rpc('activate_staff_account', {
+          p_staff_id: staffInfo.id,
+          p_user_id: authData.user?.id,
+          p_permissions: defaultPermissions
+        });
 
       if (updateError) throw updateError;
+      
+      // Check if activation was successful
+      if (!activationResult?.success) {
+        throw new Error(activationResult?.error || 'Failed to activate staff account');
+      }
 
       // Send welcome email
       await EmailService.sendWelcomeEmail(
@@ -137,12 +199,17 @@ export function StaffActivation() {
 
       showToast('Your staff account has been activated successfully!', 'success');
       
+      // Add a small delay to ensure database updates are propagated
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Check if user is immediately authenticated (no email confirmation required)
       if (authData.session) {
         // User is authenticated, redirect to staff portal
+        console.log('User authenticated, redirecting to staff portal');
         navigate('/staff-portal');
       } else {
         // Email confirmation required, sign them in manually
+        console.log('No immediate session, attempting manual sign in');
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: staffInfo.email,
           password: password
@@ -153,7 +220,9 @@ export function StaffActivation() {
           showToast('Account activated! Please sign in to continue.', 'success');
           navigate('/login');
         } else {
-          // Successfully signed in, redirect to staff portal
+          // Successfully signed in, add another small delay
+          console.log('Sign in successful, redirecting to staff portal');
+          await new Promise(resolve => setTimeout(resolve, 500));
           navigate('/staff-portal');
         }
       }

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/context/AuthContext';
 import { StaffService } from '../services/staffService';
+import { useToast } from '../../../context/ToastContext';
 import type { Staff } from '../types/staff.types';
 import { 
   HiOutlineUser,
@@ -12,23 +14,37 @@ import {
   HiOutlinePhone,
   HiOutlineMail,
   HiOutlineLocationMarker,
-  HiOutlineClock
+  HiOutlineClock,
+  HiOutlineUsers,
+  HiOutlineDocumentReport,
+  HiOutlineLogout,
+  HiOutlineCog
 } from 'react-icons/hi';
 
 export function StaffPortalDashboard() {
-  const { user } = useAuth();
+  const { user, staffInfo, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [staff, setStaff] = useState<Staff | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadStaffData();
-  }, []);
+  }, [staffInfo]);
 
   const loadStaffData = async () => {
     try {
       setLoading(true);
-      if (user?.id) {
-        // Find staff member by user_id
+      
+      // First check if we have staffInfo from AuthContext
+      if (staffInfo) {
+        console.log('Using staffInfo from AuthContext');
+        // Load full staff data including school info
+        const staffData = await StaffService.getStaffMember(staffInfo.id);
+        setStaff(staffData);
+      } else if (user?.id) {
+        console.log('Falling back to load by user_id');
+        // Fallback: Find staff member by user_id
         const staffData = await StaffService.getStaffByUserId(user.id);
         setStaff(staffData);
       }
@@ -64,6 +80,17 @@ export function StaffPortalDashboard() {
     return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      showToast('Logged out successfully', 'success');
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      showToast('Error logging out', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -96,29 +123,49 @@ export function StaffPortalDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8"
         >
-          <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              {staff.avatar_url ? (
-                <img 
-                  src={staff.avatar_url} 
-                  alt={staff.full_name}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
-              ) : (
-                staff.first_name.charAt(0) + staff.last_name.charAt(0)
-              )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {staff.avatar_url ? (
+                  <img 
+                    src={staff.avatar_url} 
+                    alt={staff.full_name}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : (
+                  staff.first_name.charAt(0) + staff.last_name.charAt(0)
+                )}
+              </div>
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  Welcome, {staff.first_name}!
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-400 mt-1">
+                  {staff.role.charAt(0).toUpperCase() + staff.role.slice(1)}
+                  {staff.department && ` • ${staff.department}`}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  Staff ID: {staff.staff_code}
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome, {staff.first_name}!
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 mt-1">
-                {staff.role.charAt(0).toUpperCase() + staff.role.slice(1)}
-                {staff.department && ` • ${staff.department}`}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Staff ID: {staff.staff_code}
-              </p>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => showToast('Settings coming soon!', 'info')}
+                className="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                title="Settings"
+              >
+                <HiOutlineCog className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              >
+                <HiOutlineLogout className="w-5 h-5" />
+                <span className="font-medium">Logout</span>
+              </button>
             </div>
           </div>
         </motion.div>
@@ -301,11 +348,14 @@ export function StaffPortalDashboard() {
               <p className="text-sm text-gray-600 dark:text-gray-400">View your class schedule</p>
             </button>
             
-            <button className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left">
-              <HiOutlineAcademicCap className="w-8 h-8 text-blue-500 mb-2" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">My Courses</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Manage your courses</p>
-            </button>
+            {/* Show courses for teachers and managers */}
+            {(staffInfo?.role === 'teacher' || staffInfo?.role === 'manager' || staffInfo?.role === 'admin') && (
+              <button className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left">
+                <HiOutlineAcademicCap className="w-8 h-8 text-blue-500 mb-2" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">My Courses</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage your courses</p>
+              </button>
+            )}
             
             <button className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-left">
               <HiOutlineCurrencyDollar className="w-8 h-8 text-green-500 mb-2" />
@@ -318,6 +368,23 @@ export function StaffPortalDashboard() {
               <h3 className="font-semibold text-gray-900 dark:text-white">Profile</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">Update your profile</p>
             </button>
+
+            {/* Admin/Manager specific actions */}
+            {(staffInfo?.role === 'admin' || staffInfo?.role === 'manager') && (
+              <>
+                <button className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left">
+                  <HiOutlineUsers className="w-8 h-8 text-red-500 mb-2" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Staff Management</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Manage staff members</p>
+                </button>
+                
+                <button className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-left">
+                  <HiOutlineDocumentReport className="w-8 h-8 text-indigo-500 mb-2" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Reports</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">View analytics & reports</p>
+                </button>
+              </>
+            )}
           </div>
         </motion.div>
       </div>

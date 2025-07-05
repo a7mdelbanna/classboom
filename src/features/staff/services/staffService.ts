@@ -17,6 +17,62 @@ export class StaffService {
     return school.id;
   }
 
+  // Get default permissions based on staff role
+  private static getDefaultPermissions(role: string) {
+    switch (role) {
+      case 'admin':
+        return {
+          can_view_all_students: true,
+          can_edit_students: true,
+          can_manage_enrollments: true,
+          can_mark_attendance: true,
+          can_view_finances: true,
+          can_manage_staff: true,
+          can_send_announcements: true
+        };
+      case 'manager':
+        return {
+          can_view_all_students: true,
+          can_edit_students: true,
+          can_manage_enrollments: true,
+          can_mark_attendance: true,
+          can_view_finances: true,
+          can_manage_staff: false,
+          can_send_announcements: true
+        };
+      case 'teacher':
+        return {
+          can_view_all_students: false,
+          can_edit_students: false,
+          can_manage_enrollments: false,
+          can_mark_attendance: true,
+          can_view_finances: false,
+          can_manage_staff: false,
+          can_send_announcements: false
+        };
+      case 'support':
+        return {
+          can_view_all_students: true,
+          can_edit_students: false,
+          can_manage_enrollments: false,
+          can_mark_attendance: false,
+          can_view_finances: false,
+          can_manage_staff: false,
+          can_send_announcements: false
+        };
+      default:
+        return {
+          can_view_all_students: false,
+          can_edit_students: false,
+          can_manage_enrollments: false,
+          can_mark_attendance: false,
+          can_view_finances: false,
+          can_manage_staff: false,
+          can_send_announcements: false
+        };
+    }
+  }
+
   // Generate staff code
   private static async generateStaffCode(role: string): Promise<string> {
     const schoolId = await this.getCurrentSchoolId();
@@ -38,6 +94,9 @@ export class StaffService {
       
       // Generate staff code
       const staffCode = await this.generateStaffCode(data.role);
+      
+      // Get default permissions based on role
+      const defaultPermissions = this.getDefaultPermissions(data.role);
       
       const { data: staff, error } = await supabase
         .from('staff')
@@ -68,7 +127,8 @@ export class StaffService {
           address: data.address || null,
           emergency_contact: data.emergency_contact || null,
           notes: data.notes || null,
-          created_by: user?.id
+          created_by: user?.id,
+          permissions: defaultPermissions
         })
         .select()
         .single();
@@ -124,21 +184,42 @@ export class StaffService {
   // Get single staff member
   static async getStaffMember(id: string): Promise<Staff | null> {
     try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      const { data: staff, error } = await supabase
+      // First try to get the staff record
+      const { data: staff, error: staffError } = await supabase
         .from('staff')
         .select('*')
         .eq('id', id)
-        .eq('school_id', schoolId)
         .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw new Error(error.message);
+      if (staffError) {
+        if (staffError.code === 'PGRST116') return null;
+        console.error('Error fetching staff:', staffError);
+        throw new Error(`Failed to fetch staff data: ${staffError.message}`);
       }
       
-      return this.enrichStaffData(staff);
+      if (!staff) return null;
+
+      // Then try to get the school data separately
+      let schoolData = null;
+      if (staff.school_id) {
+        const { data: school, error: schoolError } = await supabase
+          .from('schools')
+          .select('id, name, logo_url, address, phone, email')
+          .eq('id', staff.school_id)
+          .single();
+
+        if (!schoolError && school) {
+          schoolData = school;
+        } else {
+          console.warn('Could not fetch school data for staff member:', schoolError);
+        }
+      }
+
+      // Combine the data
+      return this.enrichStaffData({
+        ...staff,
+        school: schoolData
+      });
     } catch (error) {
       console.error('Error fetching staff member:', error);
       return null;
@@ -437,31 +518,34 @@ export class StaffService {
   // Get staff by user ID (for staff portal)
   static async getStaffByUserId(userId: string): Promise<Staff> {
     try {
-      const { data, error } = await supabase
-        .from('staff')
-        .select(`
-          *,
-          school:schools(
-            id,
-            name,
-            logo_url,
-            address,
-            phone,
-            email
-          )
-        `)
-        .eq('user_id', userId)
-        .single();
+      // Use RPC function which bypasses RLS and includes school data
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('get_staff_with_school', { p_user_id: userId });
 
-      if (error) throw new Error(error.message);
-      if (!data) throw new Error('Staff member not found');
-      
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        throw new Error('Failed to fetch staff data');
+      }
+
+      if (!rpcData || rpcData.length === 0) {
+        throw new Error('Staff member not found or portal access not enabled');
+      }
+
+      const staffData = rpcData[0];
       return {
-        ...data,
-        full_name: `${data.first_name} ${data.last_name}`
+        ...staffData,
+        full_name: `${staffData.first_name} ${staffData.last_name}`,
+        school: staffData.school_name ? {
+          id: staffData.school_id,
+          name: staffData.school_name,
+          logo_url: staffData.school_logo_url,
+          address: staffData.school_address,
+          phone: staffData.school_phone,
+          email: staffData.school_email
+        } : undefined
       };
     } catch (error) {
-      console.error('Error fetching staff by user ID:', error);
+      console.error('Error fetching staff by user_id:', error);
       throw error;
     }
   }

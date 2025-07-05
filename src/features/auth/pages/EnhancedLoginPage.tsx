@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../../../context/ToastContext';
 import { useTheme } from '../../../context/ThemeContext';
+import { validateUserRoleSelection, getDashboardRoute, getUserFriendlyRoleName } from '../utils/roleValidation';
+import { RoleHelpText } from '../components/RoleHelpText';
 import { 
   HiOutlineAcademicCap, 
   HiOutlineUsers,
@@ -12,13 +14,14 @@ import {
   HiOutlineEye,
   HiOutlineEyeOff,
   HiOutlineMoon,
-  HiOutlineSun
+  HiOutlineSun,
+  HiOutlineBriefcase
 } from 'react-icons/hi';
 
-type LoginRole = 'school' | 'student' | 'parent';
+type LoginRole = 'school' | 'student' | 'parent' | 'staff';
 
 export function EnhancedLoginPage() {
-  const { signIn, user, userRole } = useAuth();
+  const { signIn, signOut, user, userRole, loading: authLoading } = useAuth();
   const { showToast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
@@ -30,23 +33,12 @@ export function EnhancedLoginPage() {
 
   // Redirect authenticated users based on their role
   useEffect(() => {
-    if (user && userRole) {
-      switch (userRole) {
-        case 'school_owner':
-          navigate('/dashboard');
-          break;
-        case 'student':
-          navigate('/student-portal');
-          break;
-        case 'parent':
-          navigate('/parent-portal');
-          break;
-        case 'teacher':
-          navigate('/teacher-portal');
-          break;
-      }
+    if (user && userRole && !authLoading) {
+      console.log('EnhancedLoginPage: Redirecting based on role:', userRole);
+      const dashboardRoute = getDashboardRoute(userRole);
+      navigate(dashboardRoute);
     }
-  }, [user, userRole, navigate]);
+  }, [user, userRole, authLoading, navigate]);
 
   const roles = [
     {
@@ -56,6 +48,14 @@ export function EnhancedLoginPage() {
       icon: HiOutlineOfficeBuilding,
       color: 'from-orange-500 to-orange-600',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20'
+    },
+    {
+      id: 'staff' as LoginRole,
+      title: 'Staff/Teacher',
+      description: 'Access your portal, schedule, and resources',
+      icon: HiOutlineBriefcase,
+      color: 'from-green-500 to-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-900/20'
     },
     {
       id: 'student' as LoginRole,
@@ -81,17 +81,16 @@ export function EnhancedLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || !selectedRole) return;
 
     setLoading(true);
     try {
+      // First, sign in the user
       await signIn(email, password);
-      showToast('Welcome back!', 'success');
       
-      // Navigate after a small delay to ensure auth state is updated
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 100);
+      // The signIn function in AuthContext will automatically load user metadata
+      // We'll let the useEffect handle navigation based on the actual user role
+      showToast('Welcome back!', 'success');
     } catch (error: any) {
       console.error('Login error:', error);
       
@@ -107,6 +106,21 @@ export function EnhancedLoginPage() {
     }
   };
 
+  // Add a new effect to validate role after login
+  useEffect(() => {
+    if (user && userRole && selectedRole && !authLoading) {
+      // Validate the selected role matches the actual role
+      if (!validateUserRoleSelection(selectedRole, userRole)) {
+        showToast(
+          `Access denied. You are registered as a ${getUserFriendlyRoleName(userRole)}, not a ${selectedRole === 'school' ? 'school administrator' : selectedRole}.`,
+          'error'
+        );
+        signOut(); // Sign them out immediately
+        setSelectedRole(null); // Reset role selection
+      }
+    }
+  }, [user, userRole, selectedRole, authLoading, showToast, signOut]);
+
   const roleContent = {
     school: {
       title: 'School Login',
@@ -114,6 +128,13 @@ export function EnhancedLoginPage() {
       signupLink: '/signup',
       signupText: 'Create school account',
       forgotText: 'School administrator?'
+    },
+    staff: {
+      title: 'Staff Login',
+      subtitle: 'Access your staff portal',
+      signupLink: null,
+      signupText: 'Contact your school administrator',
+      forgotText: 'Staff member access'
     },
     student: {
       title: 'Student Login',
@@ -162,7 +183,7 @@ export function EnhancedLoginPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {roles.map((role, index) => (
               <motion.button
                 key={role.id}
@@ -252,6 +273,8 @@ export function EnhancedLoginPage() {
           <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
             {currentRole.subtitle}
           </p>
+
+          <RoleHelpText selectedRole={selectedRole} />
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
