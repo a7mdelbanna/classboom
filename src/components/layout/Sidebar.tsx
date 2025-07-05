@@ -17,7 +17,8 @@ import {
   HiOutlinePlus,
   HiOutlineClipboardList,
   HiOutlineDocumentReport,
-  HiOutlineCalendar
+  HiOutlineCalendar,
+  HiOutlineBookOpen
 } from 'react-icons/hi';
 
 interface SidebarProps {
@@ -38,7 +39,7 @@ interface MenuItem {
 export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
   const location = useLocation();
   const { schoolInfo } = useAuth();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['students']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['students', 'courses']);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
   // Get terminology from school settings
@@ -80,6 +81,34 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           label: 'Reports',
           icon: HiOutlineDocumentReport,
           path: '/students/reports'
+        }
+      ]
+    },
+    {
+      id: 'courses',
+      label: 'Courses',
+      icon: HiOutlineBookOpen,
+      children: [
+        {
+          id: 'courses-catalog',
+          label: 'Catalog',
+          icon: HiOutlineClipboardList,
+          path: '/courses'
+        },
+        {
+          id: 'courses-create',
+          label: 'Add Course',
+          icon: HiOutlinePlus,
+          action: () => {
+            // Navigate to courses page and trigger add modal
+            if (location.pathname !== '/courses') {
+              window.location.href = '/courses?action=add';
+            } else {
+              // If already on courses page, just trigger the add course function
+              // We'll need to implement this via a custom event or context
+              window.dispatchEvent(new CustomEvent('openAddCourseModal'));
+            }
+          }
         }
       ]
     },
@@ -138,21 +167,25 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
 
   const isActive = (path?: string) => {
     if (!path) return false;
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    // For exact path matching (to avoid both catalog and add course being active)
+    if (path.includes('?')) {
+      // For paths with query params, only match if URL params also match
+      return location.pathname + location.search === path;
+    }
+    return location.pathname === path;
   };
 
   const isParentActive = (item: MenuItem) => {
+    // Only highlight parent if it has its own path and is active
+    // Don't highlight parent just because a child is active
     if (item.path && isActive(item.path)) return true;
-    if (item.children) {
-      return item.children.some(child => isActive(child.path));
-    }
     return false;
   };
 
   const renderMenuItem = (item: MenuItem, depth = 0) => {
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.id);
-    const active = isParentActive(item);
+    const active = depth === 0 ? isParentActive(item) : isActive(item.path);
 
     if (hasChildren) {
       return (

@@ -69,10 +69,12 @@ export function Modal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-[1000]"
-            onClick={handleBackdropClick}
           >
             {/* Modal Container */}
-            <div className="fixed inset-0 flex items-center justify-center p-4">
+            <div 
+              className="fixed inset-0 flex items-center justify-center p-4"
+              onClick={handleBackdropClick}
+            >
               <motion.div
                 ref={modalRef}
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}

@@ -19,6 +19,7 @@ import { StudentListCards } from './features/students/pages/StudentListCards';
 import { AddStudentNew } from './features/students/pages/AddStudentNew';
 import { StudentProfile } from './features/students/pages/StudentProfile';
 import { SettingsPage } from './features/settings/pages/SettingsPage';
+import { CourseManagement } from './features/courses';
 import { StudentPortalDashboard } from './features/students/pages/StudentPortalDashboard';
 import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
 import { LandingPage } from './features/landing/pages/LandingPage';
@@ -60,6 +61,9 @@ function App() {
             <Route path="/students/new" element={<AddStudentNew />} />
             <Route path="/students/:id" element={<StudentProfile />} />
             <Route path="/students/:id/edit" element={<AddStudentNew />} />
+            
+            {/* Course Management Routes */}
+            <Route path="/courses" element={<CourseManagement />} />
             
             {/* Placeholder routes for other sections */}
             <Route path="/classes" element={<div>Classes Page</div>} />

@@ -276,8 +276,9 @@ export function StudentListCards() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: index * 0.05 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer"
+                  onClick={() => setEditingStudent(student)}
                 >
                   {/* Card Header with Avatar */}
                   <div className="relative p-6 pb-4">

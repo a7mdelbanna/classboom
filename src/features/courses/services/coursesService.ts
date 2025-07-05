@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import { getDefaultCourseNames } from '../../students/types/default-courses.types';
+import { getDefaultCourseNames, getDefaultCourses } from '../../students/types/default-courses.types';
 import type { InstitutionType } from '../../../types/institution.types';
 
 export interface SchoolCourse {
@@ -10,9 +10,27 @@ export interface SchoolCourse {
   category?: string;
   level?: string;
   duration_hours?: number;
+  max_capacity?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface CourseFormData {
+  name: string;
+  description?: string;
+  category?: string;
+  level?: string;
+  duration_hours?: number;
+  max_capacity?: number;
+  is_active?: boolean;
+}
+
+export interface CourseFilters {
+  category?: string;
+  level?: string;
+  is_active?: boolean;
+  search?: string;
 }
 
 export class CoursesService {
@@ -158,7 +176,7 @@ export class CoursesService {
   }
 
   // Add a new course
-  static async addCourse(courseName: string, description?: string, category?: string): Promise<SchoolCourse> {
+  static async addCourse(courseData: CourseFormData): Promise<SchoolCourse> {
     try {
       const schoolId = await this.getCurrentSchoolId();
 
@@ -166,10 +184,8 @@ export class CoursesService {
         .from('courses')
         .insert({
           school_id: schoolId,
-          name: courseName,
-          description,
-          category,
-          is_active: true
+          ...courseData,
+          is_active: courseData.is_active ?? true
         })
         .select()
         .single();
@@ -186,15 +202,30 @@ export class CoursesService {
   }
 
   // Get all courses with full details (for management)
-  static async getAllSchoolCourses(): Promise<SchoolCourse[]> {
+  static async getAllSchoolCourses(filters?: CourseFilters): Promise<SchoolCourse[]> {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
-      const { data: courses, error } = await supabase
+      let query = supabase
         .from('courses')
         .select('*')
-        .eq('school_id', schoolId)
-        .order('name');
+        .eq('school_id', schoolId);
+
+      // Apply filters
+      if (filters?.category) {
+        query = query.eq('category', filters.category);
+      }
+      if (filters?.level) {
+        query = query.eq('level', filters.level);
+      }
+      if (filters?.is_active !== undefined) {
+        query = query.eq('is_active', filters.is_active);
+      }
+      if (filters?.search) {
+        query = query.ilike('name', `%${filters.search}%`);
+      }
+
+      const { data: courses, error } = await query.order('name');
 
       if (error) {
         throw new Error(error.message);
@@ -208,7 +239,7 @@ export class CoursesService {
   }
 
   // Update course
-  static async updateCourse(courseId: string, updates: Partial<Pick<SchoolCourse, 'name' | 'description' | 'category' | 'is_active'>>): Promise<SchoolCourse> {
+  static async updateCourse(courseId: string, updates: Partial<CourseFormData>): Promise<SchoolCourse> {
     try {
       const schoolId = await this.getCurrentSchoolId();
 
@@ -247,6 +278,153 @@ export class CoursesService {
       }
     } catch (error) {
       console.error('Error deleting course:', error);
+      throw error;
+    }
+  }
+
+  // Get course categories for the school
+  static async getCourseCategories(): Promise<string[]> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('category')
+        .eq('school_id', schoolId)
+        .not('category', 'is', null);
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
+
+      // Get unique categories
+      const categories = [...new Set(courses.map(c => c.category).filter(Boolean))];
+      return categories.sort();
+    } catch (error) {
+      console.error('Error getting course categories:', error);
+      return [];
+    }
+  }
+
+  // Get course levels for the school
+  static async getCourseLevels(): Promise<string[]> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('level')
+        .eq('school_id', schoolId)
+        .not('level', 'is', null);
+
+      if (error) {
+        console.error('Error fetching levels:', error);
+        return [];
+      }
+
+      // Get unique levels
+      const levels = [...new Set(courses.map(c => c.level).filter(Boolean))];
+      return levels.sort();
+    } catch (error) {
+      console.error('Error getting course levels:', error);
+      return [];
+    }
+  }
+
+  // Bulk import courses from defaults
+  static async importDefaultCourses(): Promise<{ success: number; errors: string[] }> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      const defaultCourses = await this.getDefaultCoursesForSchool();
+      
+      // Get school's institution type for proper categorization
+      const { data: school } = await supabase
+        .from('schools')
+        .select('settings')
+        .eq('id', schoolId)
+        .single();
+
+      const institutionType = school?.settings?.institution_type || 'public_school';
+      const defaultCourseData = getDefaultCourses(institutionType);
+
+      const coursesToInsert = [];
+      const errors = [];
+
+      // Convert default courses to proper format
+      for (const category of defaultCourseData) {
+        for (const course of category.courses) {
+          coursesToInsert.push({
+            school_id: schoolId,
+            name: course.name,
+            description: course.description,
+            category: course.category,
+            level: course.level,
+            duration_hours: course.duration_hours,
+            is_active: course.is_active
+          });
+        }
+      }
+
+      // Insert courses in batches
+      const batchSize = 50;
+      let successCount = 0;
+
+      for (let i = 0; i < coursesToInsert.length; i += batchSize) {
+        const batch = coursesToInsert.slice(i, i + batchSize);
+        
+        const { data, error } = await supabase
+          .from('courses')
+          .insert(batch)
+          .select('id');
+
+        if (error) {
+          errors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
+        } else {
+          successCount += data?.length || 0;
+        }
+      }
+
+      return { success: successCount, errors };
+    } catch (error) {
+      console.error('Error importing default courses:', error);
+      return { success: 0, errors: [error instanceof Error ? error.message : 'Unknown error'] };
+    }
+  }
+
+  // Toggle course active status
+  static async toggleCourseStatus(courseId: string): Promise<SchoolCourse> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+
+      // First get current status
+      const { data: currentCourse, error: fetchError } = await supabase
+        .from('courses')
+        .select('is_active')
+        .eq('id', courseId)
+        .eq('school_id', schoolId)
+        .single();
+
+      if (fetchError) {
+        throw new Error(fetchError.message);
+      }
+
+      // Toggle the status
+      const { data, error } = await supabase
+        .from('courses')
+        .update({ is_active: !currentCourse.is_active })
+        .eq('id', courseId)
+        .eq('school_id', schoolId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error toggling course status:', error);
       throw error;
     }
   }
