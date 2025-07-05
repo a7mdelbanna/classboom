@@ -9,7 +9,8 @@ import {
   HiOutlineUserGroup,
   HiOutlinePencil,
   HiOutlineTrash,
-  HiOutlineLink
+  HiOutlineLink,
+  HiOutlineRefresh
 } from 'react-icons/hi';
 
 interface StaffCardProps {
@@ -177,19 +178,56 @@ export function StaffCard({
       {/* Portal Status */}
       <div className="mb-4">
         {staff.portal_access_enabled ? (
-          <div className="flex items-center space-x-2 text-sm">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-green-600 dark:text-green-400">Portal Active</span>
-            {staff.last_login_at && (
-              <span className="text-gray-500 dark:text-gray-400">
-                • Last login: {new Date(staff.last_login_at).toLocaleDateString()}
-              </span>
-            )}
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+            <div className="flex items-center space-x-2 text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-green-700 dark:text-green-300 font-medium">Portal Active</span>
+              {staff.last_login_at && (
+                <span className="text-green-600 dark:text-green-400">
+                  • Last login: {new Date(staff.last_login_at).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : staff.can_login && staff.invite_sent_at ? (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-blue-700 dark:text-blue-300 font-medium">Invitation Sent</span>
+                <span className="text-blue-600 dark:text-blue-400">
+                  {new Date(staff.invite_sent_at).toLocaleDateString()}
+                </span>
+              </div>
+              {(() => {
+                const sentAt = new Date(staff.invite_sent_at);
+                const now = new Date();
+                const hoursDiff = (now.getTime() - sentAt.getTime()) / (1000 * 60 * 60);
+                const hoursRemaining = 48 - hoursDiff;
+                
+                if (hoursRemaining <= 0) {
+                  return (
+                    <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                      Expired
+                    </span>
+                  );
+                } else if (hoursRemaining < 24) {
+                  return (
+                    <span className="text-xs text-orange-600 dark:text-orange-400">
+                      Expires in {Math.floor(hoursRemaining)}h
+                    </span>
+                  );
+                }
+                return null;
+              })()}
+            </div>
           </div>
         ) : (
-          <div className="flex items-center space-x-2 text-sm">
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            <span className="text-gray-500 dark:text-gray-400">No Portal Access</span>
+          <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+            <div className="flex items-center space-x-2 text-sm">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              <span className="text-gray-600 dark:text-gray-400">No Portal Access</span>
+            </div>
           </div>
         )}
       </div>
@@ -210,7 +248,7 @@ export function StaffCard({
             <HiOutlinePencil className="w-4 h-4" />
           </motion.button>
           
-          {!staff.portal_access_enabled && (
+          {!staff.can_login && !staff.invite_sent_at && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -222,6 +260,21 @@ export function StaffCard({
               title="Send Portal Invitation"
             >
               <HiOutlineLink className="w-4 h-4" />
+            </motion.button>
+          )}
+          
+          {staff.can_login && staff.invite_sent_at && !staff.portal_access_enabled && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSendInvitation(staff);
+              }}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+              title="Resend Portal Invitation"
+            >
+              <HiOutlineRefresh className="w-4 h-4" />
             </motion.button>
           )}
           

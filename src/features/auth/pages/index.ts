@@ -5,3 +5,4 @@ export { SetupWizard } from './SetupWizard';
 export { DemoLogin } from './DemoLogin';
 export { StudentActivation } from './StudentActivation';
 export { ParentActivation } from './ParentActivation';
+export { StaffActivation } from './StaffActivation';

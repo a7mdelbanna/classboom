@@ -42,12 +42,18 @@ export interface Staff {
   // Availability
   availability?: WeeklyAvailability;
   
-  // Portal Access
+  // Portal Access & Invitations
   portal_access_enabled: boolean;
   portal_access_token?: string;
   portal_access_created_at?: string;
   last_login_at?: string;
   permissions?: StaffPermissions;
+  
+  // Invitation Tracking
+  invite_token?: string;
+  invite_sent_at?: string;
+  account_created_at?: string;
+  can_login?: boolean;
   
   // Personal Details
   date_of_birth?: string;

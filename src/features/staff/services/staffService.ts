@@ -145,6 +145,28 @@ export class StaffService {
     }
   }
 
+  // Get staff member by user ID (for portal access)
+  static async getStaffByUserId(userId: string): Promise<Staff | null> {
+    try {
+      const { data: staff, error } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('portal_access_enabled', true)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw new Error(error.message);
+      }
+      
+      return this.enrichStaffData(staff);
+    } catch (error) {
+      console.error('Error fetching staff by user ID:', error);
+      return null;
+    }
+  }
+
   // Update staff member
   static async updateStaff(id: string, updates: Partial<StaffFormData>): Promise<Staff> {
     try {
@@ -298,22 +320,72 @@ export class StaffService {
       const staff = await this.getStaffMember(staffId);
       if (!staff) throw new Error('Staff member not found');
 
-      // Generate portal access token
-      const token = crypto.randomUUID();
+      // Get school info for email
+      const schoolId = await this.getCurrentSchoolId();
+      const { data: school } = await supabase
+        .from('schools')
+        .select('name')
+        .eq('id', schoolId)
+        .single();
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: inviter } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', user?.id)
+        .single();
+
+      // Generate secure invitation token  
+      const { EmailService } = await import('../../../services/emailServiceClient');
+      const token = EmailService.generateInvitationToken();
       
-      // Update staff with portal access
-      await supabase
+      // Create activation link
+      const baseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+      const activationLink = `${baseUrl}/activate/staff/${token}`;
+      
+      // Update staff with invitation details
+      const { error: updateError } = await supabase
         .from('staff')
         .update({
-          portal_access_enabled: true,
-          portal_access_token: token,
-          portal_access_created_at: new Date().toISOString()
+          invite_token: token,
+          invite_sent_at: new Date().toISOString(),
+          can_login: true,
+          portal_access_enabled: false // Will be enabled after activation
         })
         .eq('id', staffId);
 
-      // TODO: Send email invitation with activation link
-      // This will be implemented when we add the email service
-      console.log(`Portal invitation sent to ${staff.email} with token: ${token}`);
+      if (updateError) throw updateError;
+
+      // Send invitation email
+      const inviterName = inviter ? `${inviter.first_name} ${inviter.last_name}` : 'School Administrator';
+      
+      try {
+        await EmailService.sendStaffInvitation(staff.email, {
+          staffName: staff.full_name,
+          staffRole: staff.role.charAt(0).toUpperCase() + staff.role.slice(1),
+          schoolName: school?.name || 'School',
+          inviterName,
+          activationLink,
+          department: staff.department || undefined,
+          startDate: staff.hire_date ? new Date(staff.hire_date).toLocaleDateString() : undefined
+        });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        
+        // Rollback the invitation if email failed
+        await supabase
+          .from('staff')
+          .update({
+            invite_token: null,
+            invite_sent_at: null,
+            can_login: false
+          })
+          .eq('id', staffId);
+        
+        throw new Error(`Failed to send invitation email: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
+      }
+
+      console.log(`✅ Staff portal invitation sent to ${staff.email}`);
     } catch (error) {
       console.error('Error sending portal invitation:', error);
       throw error;

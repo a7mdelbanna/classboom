@@ -9,7 +9,8 @@ import {
   SetupWizard,
   DemoLogin,
   StudentActivation,
-  ParentActivation
+  ParentActivation,
+  StaffActivation
 } from './features/auth/pages';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleProtectedRoute } from './components/RoleProtectedRoute';
@@ -24,6 +25,7 @@ import { EnrollmentManagement } from './features/enrollments';
 import { StaffManagement } from './features/staff';
 import { StudentPortalDashboard } from './features/students/pages/StudentPortalDashboard';
 import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
+import { StaffPortalDashboard } from './features/staff/pages/StaffPortalDashboard';
 import { LandingPage } from './features/landing/pages/LandingPage';
 
 function App() {
@@ -43,6 +45,7 @@ function App() {
           <Route path="/demo" element={<DemoLogin />} />
           <Route path="/activate/student/:token" element={<StudentActivation />} />
           <Route path="/activate/parent/:token" element={<ParentActivation />} />
+          <Route path="/activate/staff/:token" element={<StaffActivation />} />
           
           {/* Protected Setup Route */}
           <Route path="/signup/trial-wizard" element={
@@ -93,6 +96,13 @@ function App() {
           <Route path="/parent-portal" element={
             <RoleProtectedRoute allowedRoles={['parent']}>
               <ParentPortalDashboard />
+            </RoleProtectedRoute>
+          } />
+          
+          {/* Staff Portal Routes */}
+          <Route path="/staff-portal" element={
+            <RoleProtectedRoute allowedRoles={['staff']}>
+              <StaffPortalDashboard />
             </RoleProtectedRoute>
           } />
           

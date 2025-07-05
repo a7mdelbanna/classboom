@@ -7,6 +7,35 @@
 3. **Check for MCP tools** (tools starting with `mcp_` or `mcp__`)
 4. **The authentication system is now COMPLETE!** 🎉
 
+## ✅ FIXED: Staff Email Invitation Issue (2025-07-05)
+
+**ROOT CAUSE FOUND:** The Edge Function was returning undefined response data, causing false error messages even though emails were being sent successfully.
+
+**The Real Problem:**
+- Edge Function was checking for `data.id` which didn't exist in Resend v3 response
+- emailService was showing success even when errors occurred
+- Staff invitations appeared to fail but were actually being delivered
+
+**Fix Applied:**
+1. **Updated Edge Function** (`supabase/functions/send-email/index.ts`)
+   - Fixed response handling for Resend v3 API
+   - Added comprehensive error logging
+   - Proper handling of undefined responses
+2. **Fixed Email Service** (`emailServiceClient.ts`)
+   - Added proper error propagation
+   - Better response validation
+   - Detailed console logging
+3. **Enhanced Staff Cards**
+   - Added visual invitation status indicators
+   - Resend button for expired invitations
+   - Expiration countdown display
+
+**Result:**
+- ✅ Staff invitation emails now send successfully
+- ✅ Proper error messages when issues occur
+- ✅ Visual feedback for invitation status
+- ✅ Beautiful HTML emails delivered via Resend
+
 ## ✅ FIXED: Students Disappearing Issue (2025-07-03)
 
 **ROOT CAUSE FOUND:** The app was creating duplicate schools on every auth state change/page refresh!
@@ -41,11 +70,11 @@
 - Authentication: Supabase Auth with email verification
 - Routing: React Router v6
 
-## 🎉 LATEST UPDATE (2025-07-05 @ 05:35): STAFF & HR MANAGEMENT SYSTEM COMPLETE!
+## 🎉 LATEST UPDATE (2025-07-05 @ 14:15): STAFF PORTAL INVITATION SYSTEM COMPLETE!
 
-### 🚨 **STAFF MANAGEMENT SYSTEM IS NOW LIVE!**
+### 🚨 **STAFF PORTAL INVITATIONS ARE NOW WORKING!**
 
-The complete Staff & HR Management System has been successfully implemented and is ready for use:
+The complete Staff & HR Management System with Portal Invitations is now fully operational:
 
 1. **Access**: Navigate to **Staff** section in the sidebar 
 2. **Features Available**:
@@ -56,16 +85,26 @@ The complete Staff & HR Management System has been successfully implemented and 
    - ✅ **HR Management**: Employment types, departments, specializations
    - ✅ **Statistics Dashboard**: Real-time staff analytics and breakdowns
    - ✅ **Advanced Filtering**: Search by name, role, status, employment type
-   - ✅ **Data Validation**: Proper date handling and field validation
+   - ✅ **Portal Invitations**: Send email invitations for staff portal access
+   - ✅ **Invitation Status**: Visual indicators for sent/expired/active invitations
+   - ✅ **Resend Functionality**: Resend expired or pending invitations
 
-3. **How to Test**:
+3. **Staff Portal Invitation Features**:
+   - **Email Invitations**: Professional HTML emails with activation links
+   - **Status Tracking**: Shows invitation sent date and expiration
+   - **Visual Indicators**: Color-coded status boxes (green/blue/gray)
+   - **Expiration Warnings**: Shows remaining time or expired status
+   - **Action Buttons**: Send/Resend invitation buttons in staff cards
+   - **Edge Function**: Properly configured with Resend API integration
+
+4. **How to Test**:
    - Navigate to `/staff` to view the staff directory
-   - Click "Add Staff" to create new staff members
-   - Test all 4 tabs: Basic Info → Employment → Compensation → Personal
-   - Try different compensation models and employment types
-   - Use the search and filtering functionality
+   - Click on any staff member without portal access
+   - Click the "Send Portal Invitation" button (link icon)
+   - For already invited staff, use "Resend Invitation" (refresh icon)
+   - Check the portal status display in the staff card
 
-## Current Status (Last Updated: 2025-07-05 @ 05:35)
+## Current Status (Last Updated: 2025-07-05 @ 14:15)
 
 ### ✅ **Foundation Phase 1: Staff & HR Management - COMPLETE**
 
@@ -97,10 +136,11 @@ The complete Staff & HR Management System has been successfully implemented and 
 - ✅ Modal triggers via URL parameters and custom events
 
 ### 📋 **Next Priorities**:
-1. **Staff Portal Invitation System** - Allow staff to access their portal accounts
-2. **Payroll Tracking System** - Track and manage staff compensation
-3. **Foundation Phase 2**: Locations & Resources Management
-4. **Foundation Phase 3**: Financial Infrastructure
+1. **✅ COMPLETED: Staff Portal Invitation System** - Staff can now receive email invitations
+2. **Staff Portal Activation Pages** - Create activation flow for staff to set passwords
+3. **Payroll Tracking System** - Track and manage staff compensation
+4. **Foundation Phase 2**: Locations & Resources Management
+5. **Foundation Phase 3**: Financial Infrastructure
 
 ### ✅ Completed Features:
 
@@ -226,11 +266,18 @@ The complete Staff & HR Management System has been successfully implemented and 
      - Custom styled dropdowns
    - ✅ **FIXED**: All RLS issues resolved, students persist correctly
 
-8. **Staff & HR Management System** ✅ **NEW & COMPLETE!** (2025-07-05)
+8. **Staff & HR Management System** ✅ **COMPLETE WITH PORTAL INVITATIONS!** (2025-07-05)
    - **Professional Staff Cards**: Modern layout with compensation display
    - **4-Tab Creation Form**: Basic Info → Employment → Compensation → Personal
    - **Multiple Compensation Models**: Monthly salary, hourly rate, per-session, volunteer
    - **Employment Type Support**: Full-time, part-time, contract, volunteer
+   - **Portal Invitation System** ✅ **NEW!**:
+     - Email invitations via Resend API
+     - Professional HTML email templates
+     - Invitation status tracking (sent/expired/active)
+     - Visual status indicators in staff cards
+     - Resend functionality for expired invitations
+     - 48-hour expiration with countdown display
    - **Advanced Features**:
      - Emergency contact management
      - Department and specialization tracking

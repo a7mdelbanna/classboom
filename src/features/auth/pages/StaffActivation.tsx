@@ -1,0 +1,313 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { supabase } from '../../../lib/supabase';
+import { EmailService } from '../../../services/emailService';
+import { useToast } from '../../../context/ToastContext';
+import { HiOutlineEye, HiOutlineEyeOff, HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
+
+interface StaffInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
+  school_name: string;
+}
+
+export function StaffActivation() {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  
+  const [loading, setLoading] = useState(true);
+  const [activating, setActivating] = useState(false);
+  const [staffInfo, setStaffInfo] = useState<StaffInfo | null>(null);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (token) {
+      validateToken();
+    }
+  }, [token]);
+
+  const validateToken = async () => {
+    try {
+      setLoading(true);
+      
+      // Find staff member by invitation token
+      const { data: staff, error } = await supabase
+        .from('staff')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          role,
+          department,
+          invite_token,
+          invite_sent_at,
+          portal_access_enabled,
+          school:schools(name)
+        `)
+        .eq('invite_token', token)
+        .eq('can_login', true)
+        .single();
+
+      if (error || !staff) {
+        setError('Invalid or expired invitation link');
+        return;
+      }
+
+      // Check if already activated
+      if (staff.portal_access_enabled) {
+        setError('This invitation has already been used');
+        return;
+      }
+
+      // Check if invitation is expired (48 hours)
+      const inviteSentAt = new Date(staff.invite_sent_at);
+      const expiresAt = new Date(inviteSentAt.getTime() + 48 * 60 * 60 * 1000);
+      
+      if (new Date() > expiresAt) {
+        setError('This invitation has expired');
+        return;
+      }
+
+      setStaffInfo({
+        id: staff.id,
+        first_name: staff.first_name,
+        last_name: staff.last_name,
+        email: staff.email,
+        role: staff.role,
+        department: staff.department,
+        school_name: staff.school?.name || 'School'
+      });
+    } catch (error: any) {
+      console.error('Error validating token:', error);
+      setError('Failed to validate invitation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleActivation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!staffInfo) return;
+    
+    // Validate passwords
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      setActivating(true);
+      setError('');
+
+      // Create authentication user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: staffInfo.email,
+        password: password,
+        options: {
+          data: {
+            first_name: staffInfo.first_name,
+            last_name: staffInfo.last_name,
+            role: 'staff',
+            staff_id: staffInfo.id
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Update staff record
+      const { error: updateError } = await supabase
+        .from('staff')
+        .update({
+          user_id: authData.user?.id,
+          portal_access_enabled: true,
+          account_created_at: new Date().toISOString(),
+          invite_token: null // Clear the token
+        })
+        .eq('id', staffInfo.id);
+
+      if (updateError) throw updateError;
+
+      // Send welcome email
+      await EmailService.sendWelcomeEmail(
+        staffInfo.email,
+        `${staffInfo.first_name} ${staffInfo.last_name}`,
+        staffInfo.school_name,
+        'staff'
+      );
+
+      showToast('Your staff account has been activated successfully!', 'success');
+      
+      // Redirect to staff portal
+      navigate('/staff-portal');
+    } catch (error: any) {
+      console.error('Error activating account:', error);
+      setError(error.message || 'Failed to activate account');
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+            <p className="text-gray-600 dark:text-gray-400 mt-4">Validating invitation...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-md text-center"
+        >
+          <HiOutlineExclamationCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Activation Failed
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+          >
+            Go to Login
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-md"
+      >
+        <div className="text-center mb-6">
+          <HiOutlineCheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Activate Your Account
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Welcome to {staffInfo?.school_name}!
+          </p>
+        </div>
+
+        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 mb-6">
+          <div className="text-sm">
+            <p className="text-gray-800 dark:text-gray-200 font-medium">
+              {staffInfo?.first_name} {staffInfo?.last_name}
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {staffInfo?.role.charAt(0).toUpperCase() + staffInfo?.role.slice(1)}
+              {staffInfo?.department && ` • ${staffInfo.department}`}
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {staffInfo?.email}
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleActivation} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Create Password *
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-12"
+                placeholder="Enter a secure password"
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Confirm Password *
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-12"
+                placeholder="Confirm your password"
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                {showConfirmPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={activating}
+            className={`w-full font-semibold py-3 px-4 rounded-lg transition-colors ${
+              activating
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                : 'bg-orange-500 hover:bg-orange-600 text-white'
+            }`}
+          >
+            {activating ? 'Activating Account...' : 'Activate My Account'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            By activating your account, you agree to our terms of service and privacy policy.
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
