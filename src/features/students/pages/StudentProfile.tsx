@@ -5,6 +5,7 @@ import { StudentService } from '../services/studentService';
 import { PortalAccessCard } from '../components/PortalAccessCard';
 import { ParentInviteCard } from '../../parents/components/ParentInviteCard';
 import { AvatarUpload } from '../components/AvatarUpload';
+import { StudentEnrollments } from '../../enrollments/components/StudentEnrollments';
 import type { Student } from '../types/student.types';
 
 export function StudentProfile() {
@@ -390,6 +391,17 @@ export function StudentProfile() {
               <ParentInviteCard 
                 student={student} 
                 onUpdate={() => loadStudent(student.id)}
+              />
+            </motion.div>
+
+            {/* Student Enrollments */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <StudentEnrollments 
+                studentId={student.id}
               />
             </motion.div>
           </div>

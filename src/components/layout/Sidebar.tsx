@@ -18,7 +18,8 @@ import {
   HiOutlineClipboardList,
   HiOutlineDocumentReport,
   HiOutlineCalendar,
-  HiOutlineBookOpen
+  HiOutlineBookOpen,
+  HiOutlineClipboardCheck
 } from 'react-icons/hi';
 
 interface SidebarProps {
@@ -111,6 +112,12 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           }
         }
       ]
+    },
+    {
+      id: 'enrollments',
+      label: 'Enrollments',
+      icon: HiOutlineClipboardCheck,
+      path: '/enrollments'
     },
     {
       id: 'classes',
