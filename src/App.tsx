@@ -27,6 +27,7 @@ import { StudentPortalDashboard } from './features/students/pages/StudentPortalD
 import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDashboard';
 import { StaffPortalDashboard } from './features/staff/pages/StaffPortalDashboard';
 import { LandingPage } from './features/landing/pages/LandingPage';
+import { PayrollManagement, PayrollDetail } from './features/payroll';
 
 function App() {
   return (
@@ -76,6 +77,10 @@ function App() {
             {/* Staff Management Routes */}
             <Route path="/staff" element={<StaffManagement />} />
             <Route path="/staff/reports" element={<div>Staff Reports Page</div>} />
+            
+            {/* Payroll Management Routes */}
+            <Route path="/payroll" element={<PayrollManagement />} />
+            <Route path="/payroll/:id" element={<PayrollDetail />} />
             
             {/* Placeholder routes for other sections */}
             <Route path="/classes" element={<div>Classes Page</div>} />

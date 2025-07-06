@@ -21,7 +21,8 @@ import {
   HiOutlineBookOpen,
   HiOutlineClipboardCheck,
   HiOutlineUsers,
-  HiOutlineBriefcase
+  HiOutlineBriefcase,
+  HiOutlineCash
 } from 'react-icons/hi';
 
 interface SidebarProps {
@@ -174,6 +175,12 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
           path: '/staff/reports'
         }
       ]
+    },
+    {
+      id: 'payroll',
+      label: 'Payroll',
+      icon: HiOutlineCash,
+      path: '/payroll'
     },
     {
       id: 'classes',

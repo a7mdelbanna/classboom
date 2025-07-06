@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import type { Staff, StaffFormData, StaffFilters, StaffCourseAssignment, Payroll, PayrollFilters } from '../types/staff.types';
+import type { Staff, StaffFormData, StaffFilters, StaffCourseAssignment } from '../types/staff.types';
 
 export class StaffService {
   // Get current school ID
@@ -452,69 +452,6 @@ export class StaffService {
     }
   }
 
-  // Get payroll records
-  static async getPayrollRecords(filters?: PayrollFilters): Promise<Payroll[]> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      let query = supabase
-        .from('payroll')
-        .select(`
-          *,
-          staff(
-            id,
-            first_name,
-            last_name,
-            staff_code,
-            role
-          )
-        `)
-        .eq('school_id', schoolId)
-        .order('period_start', { ascending: false });
-      
-      // Apply filters
-      if (filters?.staff_id) {
-        query = query.eq('staff_id', filters.staff_id);
-      }
-      if (filters?.status) {
-        query = query.eq('payment_status', filters.status);
-      }
-      if (filters?.period_start) {
-        query = query.gte('period_start', filters.period_start);
-      }
-      if (filters?.period_end) {
-        query = query.lte('period_end', filters.period_end);
-      }
-
-      const { data: payroll, error } = await query;
-
-      if (error) throw new Error(error.message);
-      
-      return payroll || [];
-    } catch (error) {
-      console.error('Error fetching payroll records:', error);
-      throw error;
-    }
-  }
-
-  // Calculate payroll for staff member
-  static async calculatePayroll(staffId: string, periodStart: string, periodEnd: string): Promise<any> {
-    try {
-      const { data, error } = await supabase.rpc('calculate_staff_payroll', {
-        p_staff_id: staffId,
-        p_period_start: periodStart,
-        p_period_end: periodEnd
-      });
-
-      if (error) throw new Error(error.message);
-      
-      return data;
-    } catch (error) {
-      console.error('Error calculating payroll:', error);
-      throw error;
-    }
-  }
-
   // Get staff by user ID (for staff portal)
   static async getStaffByUserId(userId: string): Promise<Staff> {
     try {
@@ -546,103 +483,6 @@ export class StaffService {
       };
     } catch (error) {
       console.error('Error fetching staff by user_id:', error);
-      throw error;
-    }
-  }
-
-  // Create payroll record
-  static async createPayroll(staffId: string, periodStart: string, periodEnd: string): Promise<Payroll> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Calculate payroll details
-      const calculation = await this.calculatePayroll(staffId, periodStart, periodEnd);
-      
-      const { data: payroll, error } = await supabase
-        .from('payroll')
-        .insert({
-          school_id: schoolId,
-          staff_id: staffId,
-          period_start: periodStart,
-          period_end: periodEnd,
-          base_amount: calculation.base_amount,
-          hours_worked: calculation.hours_worked,
-          sessions_taught: calculation.sessions_count,
-          gross_amount: calculation.gross_amount,
-          net_amount: calculation.net_amount,
-          currency: calculation.currency,
-          calculation_details: calculation,
-          submitted_by: user?.id
-        })
-        .select(`
-          *,
-          staff(
-            id,
-            first_name,
-            last_name,
-            staff_code,
-            role
-          )
-        `)
-        .single();
-
-      if (error) throw new Error(error.message);
-      
-      return payroll;
-    } catch (error) {
-      console.error('Error creating payroll:', error);
-      throw error;
-    }
-  }
-
-  // Update payroll status
-  static async updatePayrollStatus(payrollId: string, status: string, paymentDetails?: any): Promise<Payroll> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const updates: any = {
-        payment_status: status,
-        updated_at: new Date().toISOString()
-      };
-      
-      if (status === 'approved') {
-        updates.approved_at = new Date().toISOString();
-        updates.approved_by = user?.id;
-      } else if (status === 'paid') {
-        updates.paid_at = new Date().toISOString();
-        updates.paid_by = user?.id;
-        if (paymentDetails) {
-          updates.payment_date = paymentDetails.payment_date;
-          updates.payment_method = paymentDetails.payment_method;
-          updates.payment_reference = paymentDetails.payment_reference;
-          updates.payment_account_id = paymentDetails.payment_account_id;
-        }
-      }
-      
-      const { data: payroll, error } = await supabase
-        .from('payroll')
-        .update(updates)
-        .eq('id', payrollId)
-        .eq('school_id', schoolId)
-        .select(`
-          *,
-          staff(
-            id,
-            first_name,
-            last_name,
-            staff_code,
-            role
-          )
-        `)
-        .single();
-
-      if (error) throw new Error(error.message);
-      
-      return payroll;
-    } catch (error) {
-      console.error('Error updating payroll status:', error);
       throw error;
     }
   }

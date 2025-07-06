@@ -85,7 +85,7 @@ export function Modal({
                   stiffness: 300,
                   damping: 30
                 }}
-                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col ${className}`}
+                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col ${className}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
@@ -115,7 +115,7 @@ export function Modal({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto p-6">
                   {children}
                 </div>
               </motion.div>

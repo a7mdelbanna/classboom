@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Portal } from './Portal';
 
 interface DatePickerProps {
   value: string;
@@ -20,7 +21,10 @@ export function DatePicker({
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(new Date());
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const pickerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -45,6 +49,44 @@ export function DatePicker({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Check dropdown position when opening
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - buttonRect.bottom;
+      const spaceAbove = buttonRect.top;
+      const dropdownHeight = 400; // Approximate height of the calendar dropdown
+      const dropdownWidth = 320; // Width of the calendar dropdown (w-80 = 20rem = 320px)
+
+      // Calculate horizontal position to keep dropdown within viewport
+      let left = buttonRect.left;
+      const rightEdge = left + dropdownWidth;
+      const viewportWidth = window.innerWidth;
+      
+      if (rightEdge > viewportWidth - 20) { // 20px margin from edge
+        left = Math.max(20, viewportWidth - dropdownWidth - 20);
+      }
+
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        setDropdownPosition('top');
+        setDropdownStyle({
+          position: 'fixed',
+          left: `${left}px`,
+          bottom: `${window.innerHeight - buttonRect.top + 4}px`,
+          width: `${dropdownWidth}px`
+        });
+      } else {
+        setDropdownPosition('bottom');
+        setDropdownStyle({
+          position: 'fixed',
+          left: `${left}px`,
+          top: `${buttonRect.bottom + 4}px`,
+          width: `${dropdownWidth}px`
+        });
+      }
+    }
+  }, [isOpen]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -120,6 +162,7 @@ export function DatePicker({
   return (
     <div ref={pickerRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-left flex items-center justify-between"
@@ -144,13 +187,15 @@ export function DatePicker({
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute z-[9999] mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 w-80"
-          >
+          <Portal>
+            <motion.div
+              initial={{ opacity: 0, y: dropdownPosition === 'top' ? 10 : -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: dropdownPosition === 'top' ? 10 : -10 }}
+              transition={{ duration: 0.2 }}
+              style={dropdownStyle}
+              className="z-[9999] bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4"
+            >
             {/* Month/Year Navigation */}
             <div className="flex items-center justify-between mb-4">
               <button
@@ -264,7 +309,8 @@ export function DatePicker({
                 Today
               </button>
             </div>
-          </motion.div>
+            </motion.div>
+          </Portal>
         )}
       </AnimatePresence>
     </div>

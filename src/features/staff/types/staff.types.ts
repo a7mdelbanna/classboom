@@ -4,7 +4,6 @@ export type StaffRole = 'teacher' | 'manager' | 'admin' | 'support' | 'custodian
 export type EmploymentType = 'full_time' | 'part_time' | 'contract' | 'volunteer';
 export type CompensationModel = 'monthly_salary' | 'per_session' | 'hourly' | 'volunteer';
 export type StaffStatus = 'active' | 'inactive' | 'suspended' | 'terminated';
-export type PayrollStatus = 'pending' | 'approved' | 'processing' | 'paid' | 'cancelled';
 
 export interface Staff {
   id: string;
@@ -157,66 +156,7 @@ export interface StaffCourseAssignment {
   course?: any; // Will be Course type
 }
 
-export interface Payroll {
-  id: string;
-  school_id: string;
-  staff_id: string;
-  period_start: string;
-  period_end: string;
-  
-  // Calculation Details
-  base_amount: number;
-  hours_worked?: number;
-  sessions_taught?: number;
-  overtime_hours?: number;
-  overtime_amount?: number;
-  bonuses?: PayrollItem[];
-  deductions?: PayrollItem[];
-  
-  // Totals
-  gross_amount: number;
-  net_amount: number;
-  currency: string;
-  
-  // Payment Details
-  payment_status: PayrollStatus;
-  payment_date?: string;
-  payment_method?: string;
-  payment_reference?: string;
-  payment_account_id?: string;
-  
-  // Metadata
-  notes?: string;
-  calculation_details?: any;
-  
-  // Workflow
-  submitted_at: string;
-  submitted_by?: string;
-  approved_at?: string;
-  approved_by?: string;
-  paid_at?: string;
-  paid_by?: string;
-  
-  created_at: string;
-  updated_at: string;
-  
-  // Relations
-  staff?: Staff;
-}
-
-export interface PayrollItem {
-  type: string;
-  amount: number;
-  description?: string;
-}
-
-export interface PayrollFilters {
-  staff_id?: string;
-  status?: PayrollStatus;
-  period_start?: string;
-  period_end?: string;
-  search?: string;
-}
+// Payroll types have been moved to features/payroll/types/payroll.types.ts
 
 export interface StaffFilters {
   role?: StaffRole;
