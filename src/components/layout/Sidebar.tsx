@@ -23,7 +23,8 @@ import {
   HiOutlineUsers,
   HiOutlineBriefcase,
   HiOutlineCash,
-  HiOutlineLibrary
+  HiOutlineLibrary,
+  HiOutlineOfficeBuilding
 } from 'react-icons/hi';
 
 interface SidebarProps {
@@ -188,6 +189,12 @@ export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
       label: 'Financial',
       icon: HiOutlineLibrary,
       path: '/financial'
+    },
+    {
+      id: 'resources',
+      label: 'Resources',
+      icon: HiOutlineOfficeBuilding,
+      path: '/resources'
     },
     {
       id: 'classes',

@@ -29,6 +29,8 @@ import { StaffPortalDashboard } from './features/staff/pages/StaffPortalDashboar
 import { LandingPage } from './features/landing/pages/LandingPage';
 import { PayrollManagement, PayrollDetail } from './features/payroll';
 import { FinancialManagement } from './features/financial';
+import { SessionTestPage } from './features/sessions/pages/SessionTestPage';
+import { ResourcesPage } from './features/resources';
 
 function App() {
   return (
@@ -85,6 +87,12 @@ function App() {
             
             {/* Financial Management Routes */}
             <Route path="/financial" element={<FinancialManagement />} />
+            
+            {/* Sessions Test Route */}
+            <Route path="/sessions/test" element={<SessionTestPage />} />
+            
+            {/* Resources Management Routes */}
+            <Route path="/resources" element={<ResourcesPage />} />
             
             {/* Placeholder routes for other sections */}
             <Route path="/classes" element={<div>Classes Page</div>} />
