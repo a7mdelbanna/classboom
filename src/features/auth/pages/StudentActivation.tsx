@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../../../lib/supabase';
 import { StudentService } from '../../students/services/studentService';
 import { useToast } from '../../../context/ToastContext';
 import { 
@@ -38,17 +39,46 @@ export function StudentActivation() {
     }
 
     try {
-      const studentData = await StudentService.getStudentByToken(token);
+      console.log('Validating student token:', token);
       
-      if (!studentData) {
+      // Use the secure function to validate the token (same approach as staff)
+      const { data, error } = await supabase.rpc('validate_student_activation_token', {
+        p_token: token
+      });
+
+      console.log('Student validation result:', { data, error });
+
+      if (error) {
+        console.error('Token validation error:', error);
         setTokenValid(false);
-        showToast('Invalid or expired invitation link', 'error');
-      } else if (studentData.account_created_at) {
-        setTokenValid(false);
-        showToast('This account has already been activated', 'info');
-      } else {
-        setStudent(studentData);
+        showToast('Failed to validate invitation', 'error');
+        return;
       }
+
+      if (!data || !data.success) {
+        setTokenValid(false);
+        showToast(data?.error || 'Invalid or expired invitation link', 'error');
+        return;
+      }
+
+      // Set the student info from the validated data
+      const studentData: Student = {
+        id: data.data.id,
+        first_name: data.data.first_name,
+        last_name: data.data.last_name,
+        email: data.data.email,
+        student_code: data.data.student_code,
+        grade: data.data.grade,
+        school_id: '', // Not needed for activation
+        created_at: '', // Not needed for activation
+        status: 'active',
+        // Add school info for display
+        school: {
+          name: data.data.school_name
+        }
+      } as Student;
+
+      setStudent(studentData);
     } catch (error) {
       console.error('Error validating token:', error);
       setTokenValid(false);
@@ -77,20 +107,84 @@ export function StudentActivation() {
       return;
     }
 
-    if (!token) return;
+    if (!token || !student) return;
 
     setSubmitting(true);
     try {
-      const result = await StudentService.activateStudentAccount(token, password);
-      
-      if (result.success) {
-        showToast('Account activated successfully! Redirecting to login...', 'success');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      } else {
-        showToast(result.error || 'Failed to activate account', 'error');
+      // Create auth user with student metadata
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: student.email!,
+        password,
+        options: {
+          data: {
+            student_id: student.id,
+            full_name: `${student.first_name} ${student.last_name}`,
+            first_name: student.first_name,
+            last_name: student.last_name,
+            role: 'student'
+          }
+        }
+      });
+
+      if (signUpError || !authData.user) {
+        showToast(signUpError?.message || 'Failed to create account', 'error');
+        return;
       }
+
+      // Use RPC function to activate account atomically
+      const { data: activateResult, error: activateError } = await supabase
+        .rpc('activate_student_account', {
+          p_token: token,
+          p_user_id: authData.user.id,
+          p_student_id: student.id
+        });
+
+      if (activateError || !activateResult) {
+        console.error('Activation error:', activateError);
+        
+        // Try to clean up the auth user if activation failed
+        await supabase.auth.admin.deleteUser(authData.user.id).catch(console.error);
+        
+        showToast('Failed to activate account. Please contact support.', 'error');
+        return;
+      }
+
+      // Success! Add a delay to ensure metadata is propagated
+      showToast('Account activated successfully! Redirecting to your portal...', 'success');
+      
+      // Add a small delay to ensure database updates are propagated
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if user is immediately authenticated (no email confirmation required)
+      if (authData.session) {
+        // User is authenticated, redirect to student portal
+        console.log('User authenticated after activation:', {
+          userId: authData.user.id,
+          userMetadata: authData.user.user_metadata,
+          session: !!authData.session
+        });
+        console.log('Redirecting to student portal...');
+        navigate('/student-portal');
+      } else {
+        // Email confirmation required, sign them in manually (same as staff activation)
+        console.log('No immediate session, attempting manual sign in');
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: student.email!,
+          password: password
+        });
+        
+        if (signInError) {
+          console.error('Sign in after activation failed:', signInError);
+          showToast('Account activated! Please sign in to continue.', 'success');
+          navigate('/login');
+        } else {
+          // Successfully signed in, add another small delay
+          console.log('Sign in successful, redirecting to student portal');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          navigate('/student-portal');
+        }
+      }
+
     } catch (error) {
       console.error('Error activating account:', error);
       showToast('An unexpected error occurred', 'error');

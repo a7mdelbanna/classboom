@@ -194,13 +194,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // 2. Check if user is a student
+      // First check if user has student_id in metadata (from activation)
+      if (user.user_metadata?.student_id) {
+        console.log('Found student_id in user metadata:', user.user_metadata.student_id);
+        
+        // Query by student ID which is more reliable than user_id
+        const { data: studentByMetadata, error: studentMetadataError } = await supabase
+          .from('students')
+          .select('id, student_code, first_name, last_name, school_id, user_id, can_login')
+          .eq('id', user.user_metadata.student_id)
+          .single();
+          
+        if (studentByMetadata && !studentMetadataError) {
+          console.log('Found student by metadata ID');
+          
+          // Update user_id if it's not set (handles race condition)
+          if (!studentByMetadata.user_id) {
+            console.log('Updating student user_id');
+            await supabase
+              .from('students')
+              .update({ user_id: user.id })
+              .eq('id', studentByMetadata.id);
+          }
+          
+          setUserRole('student');
+          setStudentInfo({
+            id: studentByMetadata.id,
+            student_code: studentByMetadata.student_code,
+            first_name: studentByMetadata.first_name,
+            last_name: studentByMetadata.last_name,
+            school_id: studentByMetadata.school_id
+          });
+          return;
+        }
+      }
+      
+      // Fallback to querying by user_id for students
       const { data: student, error: studentError } = await supabase
         .from('students')
         .select('id, student_code, first_name, last_name, school_id')
         .eq('user_id', user.id)
+        .eq('can_login', true)
         .single();
       
       if (student && !studentError) {
+        console.log('Found student by user_id');
         setUserRole('student');
         setStudentInfo({
           id: student.id,

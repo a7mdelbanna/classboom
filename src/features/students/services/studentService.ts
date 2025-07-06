@@ -1,341 +1,126 @@
 import { supabase } from '../../../lib/supabase';
+import type { Student, StudentFilters, StudentFormData } from '../types/student.types';
 import { EmailService } from '../../../services/emailServiceClient';
 import { ActivityService } from '../../../services/activityService';
-import type { Student, CreateStudentInput } from '../types/student.types';
-import type { AdvancedFilterState } from '../components/AdvancedFilters';
 
 export class StudentService {
-  // Helper to get current user's school ID
-  static async getCurrentSchoolId(): Promise<string> {
-    const { data: { user } } = await supabase.auth.getUser();
+  private static async getCurrentSchoolId(): Promise<string> {
+    console.log('Getting current school ID...');
     
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      throw new Error('No authenticated user');
+      console.error('No authenticated user found');
+      throw new Error('Not authenticated');
     }
 
-    // CRITICAL FIX: Always get the OLDEST school to prevent duplicates
-    // Order by created_at ASC to get the first school created
-    const { data: schools, error } = await supabase
+    console.log('Current user:', user.id);
+
+    // Use the OLDEST school ID to avoid race conditions
+    const { data: school, error } = await supabase
       .from('schools')
-      .select('id, created_at, name')
+      .select('id')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: true })
-      .limit(1);
-    
-    if (error) {
-      console.error('Error fetching school:', error);
-      throw new Error(`Failed to fetch school: ${error.message}`);
-    }
-    
-    if (!schools || schools.length === 0) {
-      // Only create if truly no schools exist
-      const schoolName = user.user_metadata?.school_name || 'My School';
-      console.log('No schools found, creating first school for user...');
+      .limit(1)
+      .single();
+
+    if (error || !school) {
+      console.error('Error getting school:', error);
       
-      try {
-        const { data: newSchool, error: createError } = await supabase
-          .from('schools')
-          .insert({
-            name: schoolName,
-            owner_id: user.id,
-            subscription_plan: 'trial',
-            subscription_status: 'active',
-            trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            settings: user.user_metadata?.school_settings || {}
-          })
-          .select('id')
-          .single();
-        
-        if (createError) {
-          // Check if it's a unique constraint violation (school already exists)
-          if (createError.code === '23505') {
-            console.log('School was created by another request, fetching it now...');
-            // Try to fetch the school again
-            const { data: existingSchools, error: refetchError } = await supabase
-              .from('schools')
-              .select('id, created_at, name')
-              .eq('owner_id', user.id)
-              .order('created_at', { ascending: true })
-              .limit(1);
-            
-            if (!refetchError && existingSchools && existingSchools.length > 0) {
-              console.log('Found existing school after race condition:', existingSchools[0].id);
-              return existingSchools[0].id;
-            }
-          }
-          throw new Error(`Failed to create school: ${createError.message}`);
-        }
-        
-        if (!newSchool) {
-          throw new Error('Failed to create school: No data returned');
-        }
-        
-        console.log('Successfully created first school:', newSchool.id);
-        return newSchool.id;
-      } catch (createErr) {
-        console.error('Error creating school:', createErr);
-        throw new Error('No school found for user and failed to create one');
-      }
-    }
-    
-    // Always return the oldest school
-    const schoolId = schools[0].id;
-    console.log('Using existing school:', schoolId, schools[0].name);
-    return schoolId;
-  }
-
-  static async getStudents(search?: string, status?: string, advancedFilters?: AdvancedFilterState): Promise<Student[]> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      let query = supabase
-        .from('students')
-        .select('*')
-        .eq('school_id', schoolId)
-        .order('enrolled_at', { ascending: false });
-
-      // Basic filters
-      if (status && status !== 'all') {
-        query = query.eq('status', status);
-      }
-
-      if (search) {
-        query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,student_code.ilike.%${search}%`);
-      }
-
-      // Advanced filters
-      if (advancedFilters) {
-        // Date filters
-        if (advancedFilters.enrolledAfter) {
-          query = query.gte('enrolled_at', advancedFilters.enrolledAfter);
-        }
-        if (advancedFilters.enrolledBefore) {
-          query = query.lte('enrolled_at', advancedFilters.enrolledBefore);
-        }
-        if (advancedFilters.bornAfter) {
-          query = query.gte('date_of_birth', advancedFilters.bornAfter);
-        }
-        if (advancedFilters.bornBefore) {
-          query = query.lte('date_of_birth', advancedFilters.bornBefore);
-        }
-
-        // Demographic filters
-        if (advancedFilters.countries && advancedFilters.countries.length > 0) {
-          query = query.in('country', advancedFilters.countries);
-        }
-        if (advancedFilters.cities && advancedFilters.cities.length > 0) {
-          query = query.in('city', advancedFilters.cities);
-        }
-        if (advancedFilters.skillLevels && advancedFilters.skillLevels.length > 0) {
-          query = query.in('skill_level', advancedFilters.skillLevels);
-        }
-
-        // Contact filters (these will need client-side filtering for JSON fields)
-        if (advancedFilters.hasEmail) {
-          query = query.not('email', 'is', null);
-        }
-        if (advancedFilters.hasPhone) {
-          query = query.not('phone', 'is', null);
-        }
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching students:', error);
-        throw new Error(error.message);
-      }
-
-      let students = data || [];
-
-      // Client-side filtering for complex JSON field filters
-      if (advancedFilters) {
-        students = students.filter(student => {
-          // Course interest filter
-          if (advancedFilters.interestedCourses && advancedFilters.interestedCourses.length > 0) {
-            const studentCourses = student.interested_courses || [];
-            const hasMatchingCourse = advancedFilters.interestedCourses.some(course => 
-              studentCourses.includes(course)
-            );
-            if (!hasMatchingCourse) return false;
-          }
-
-          // Social media filter
-          if (advancedFilters.hasSocialMedia) {
-            const socialMedia = student.social_media || {};
-            const hasSocialMedia = Object.values(socialMedia).some(value => 
-              value && value.toString().trim() !== ''
-            );
-            if (!hasSocialMedia) return false;
-          }
-
-          // Parent info filter
-          if (advancedFilters.hasParentInfo) {
-            const parentInfo = student.parent_info || {};
-            const hasParentInfo = Object.values(parentInfo).some(value => 
-              value && value.toString().trim() !== ''
-            );
-            if (!hasParentInfo) return false;
-          }
-
-          // Emergency contact filter
-          if (advancedFilters.hasEmergencyContact) {
-            const emergencyContact = student.emergency_contact || {};
-            const hasEmergencyContact = emergencyContact.name && emergencyContact.phone;
-            if (!hasEmergencyContact) return false;
-          }
-
-          // Medical info filter
-          if (advancedFilters.hasMedicalInfo) {
-            const medicalInfo = student.medical_info || {};
-            const hasMedicalInfo = Object.values(medicalInfo).some(value => {
-              if (Array.isArray(value)) return value.length > 0;
-              return value && value.toString().trim() !== '';
-            });
-            if (!hasMedicalInfo) return false;
-          }
-
-          return true;
-        });
-      }
-
-      return students;
-    } catch (error) {
-      console.error('Error in getStudents:', error);
-      throw error;
-    }
-  }
-
-  // Helper methods for filter options
-  static async getAvailableCities(): Promise<string[]> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      const { data, error } = await supabase
-        .from('students')
-        .select('city')
-        .eq('school_id', schoolId)
-        .not('city', 'is', null);
-
-      if (error) {
-        console.error('Error fetching cities:', error);
-        return [];
-      }
-
-      const cities = [...new Set(data?.map(item => item.city).filter(city => city && city.trim() !== ''))];
-      return cities.sort();
-    } catch (error) {
-      console.error('Error in getAvailableCities:', error);
-      return [];
-    }
-  }
-
-  static async getAvailableCourses(): Promise<string[]> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      const { data, error } = await supabase
-        .from('students')
-        .select('interested_courses')
-        .eq('school_id', schoolId);
-
-      if (error) {
-        console.error('Error fetching courses:', error);
-        return [];
-      }
-
-      const allCourses = new Set<string>();
-      data?.forEach(student => {
-        if (student.interested_courses && Array.isArray(student.interested_courses)) {
-          student.interested_courses.forEach(course => {
-            if (course && course.trim() !== '') {
-              allCourses.add(course);
-            }
-          });
-        }
-      });
-
-      return Array.from(allCourses).sort();
-    } catch (error) {
-      console.error('Error in getAvailableCourses:', error);
-      return [];
-    }
-  }
-
-  static async getStudent(id: string): Promise<Student> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .eq('id', id)
-        .eq('school_id', schoolId)
+      // Create a new school if none exists
+      console.log('No school found, creating new school...');
+      const { data: newSchool, error: createError } = await supabase
+        .from('schools')
+        .insert({
+          name: user.user_metadata?.school_name || 'My School',
+          owner_id: user.id,
+          subscription_plan: 'trial',
+          subscription_status: 'active',
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        })
+        .select()
         .single();
 
-      if (error) {
-        console.error('Error fetching student:', error);
-        throw new Error(error.message);
+      if (createError) {
+        // Check if it's a unique constraint violation (another request created it)
+        if (createError.code === '23505') {
+          console.log('School was created by another request, fetching it...');
+          // Try to fetch again
+          const { data: existingSchool, error: fetchError } = await supabase
+            .from('schools')
+            .select('id')
+            .eq('owner_id', user.id)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single();
+
+          if (fetchError || !existingSchool) {
+            throw new Error('Failed to get or create school');
+          }
+          
+          console.log('Using existing school:', existingSchool.id);
+          return existingSchool.id;
+        }
+        
+        console.error('Failed to create school:', createError);
+        throw new Error('Failed to create school');
       }
 
-      if (!data) {
-        throw new Error('Student not found');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error in getStudent:', error);
-      throw error;
+      console.log('Created new school:', newSchool.id);
+      return newSchool.id;
     }
+
+    console.log('Using existing school:', school.id);
+    return school.id;
   }
 
-  static async createStudent(studentData: CreateStudentInput): Promise<Student> {
+  static async createStudent(data: StudentFormData): Promise<Student> {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
-      // Generate student code if not provided
-      let studentCode = studentData.student_code;
-      if (!studentCode) {
-        // Get school name for prefix
-        const { data: school } = await supabase
-          .from('schools')
-          .select('name')
-          .eq('id', schoolId)
-          .single();
-        
-        const prefix = school?.name?.substring(0, 3).toUpperCase() || 'STU';
-        const timestamp = Date.now().toString().slice(-6);
-        studentCode = `${prefix}${timestamp}`;
+      // Get the next student code
+      const { data: codeData, error: codeError } = await supabase.rpc('generate_student_code', { 
+        p_school_id: schoolId 
+      });
+      
+      if (codeError) {
+        console.error('Error generating student code:', codeError);
+        throw new Error('Failed to generate student code');
       }
 
-      // Build full name from first_name and last_name
-      const fullName = `${studentData.first_name} ${studentData.last_name}`.trim();
+      const studentCode = codeData;
+      
+      // Build emergency contact JSONB object
+      const emergencyContact = {};
+      if (data.emergency_contact_name) emergencyContact.name = data.emergency_contact_name;
+      if (data.emergency_contact_phone) emergencyContact.phone = data.emergency_contact_phone;
+      if (data.emergency_contact_relationship) emergencyContact.relationship = data.emergency_contact_relationship;
 
-      // Clean up empty strings for optional fields
-      const cleanedData = {
-        school_id: schoolId,
-        student_code: studentCode,
-        full_name: fullName,
-        first_name: studentData.first_name,
-        last_name: studentData.last_name,
-        email: studentData.email || null,
-        phone: studentData.phone || null,
-        date_of_birth: studentData.date_of_birth || null,
-        city: studentData.city || null,
-        country: studentData.country || null,
-        skill_level: studentData.skill_level || null,
-        notes: studentData.notes || null,
-        interested_courses: studentData.interested_courses || [],
-        social_media: studentData.social_media || {},
-        communication_preferences: studentData.communication_preferences || {},
-        emergency_contact: studentData.emergency_contact || null,
-        medical_info: studentData.medical_info || {},
-        parent_info: studentData.parent_info || {}
-      };
+      // Build parent info JSONB object
+      const parentInfo = {};
+      if (data.parent_name) parentInfo.name = data.parent_name;
+      if (data.parent_email) parentInfo.email = data.parent_email;
+      if (data.parent_phone) parentInfo.phone = data.parent_phone;
 
-      const { data, error } = await supabase
+      const { data: student, error } = await supabase
         .from('students')
-        .insert(cleanedData)
+        .insert({
+          school_id: schoolId,
+          student_code: studentCode,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email || null,
+          phone: data.phone || null,
+          date_of_birth: data.date_of_birth || null,
+          grade: data.grade || null,
+          skill_level: data.skill_level || null,
+          country: data.country || null,
+          city: data.city || null,
+          notes: data.notes || null,
+          emergency_contact: Object.keys(emergencyContact).length > 0 ? emergencyContact : {},
+          parent_info: Object.keys(parentInfo).length > 0 ? parentInfo : {},
+          status: 'active'
+        })
         .select()
         .single();
 
@@ -344,61 +129,236 @@ export class StudentService {
         throw new Error(error.message);
       }
 
-      if (!data) {
-        throw new Error('Failed to create student');
-      }
-
       // Log activity
       await ActivityService.logActivity({
         action_type: 'student_added',
         entity_type: 'student',
-        entity_id: data.id,
-        entity_name: `${data.first_name} ${data.last_name}`,
-        description: `added a new student: ${data.first_name} ${data.last_name}`
+        entity_id: student.id,
+        entity_name: `${student.first_name} ${student.last_name}`,
+        description: `added new student: ${student.first_name} ${student.last_name}`
       });
 
-      return data;
+      return student;
     } catch (error) {
       console.error('Error in createStudent:', error);
       throw error;
     }
   }
 
-  static async updateStudent(id: string, updates: Partial<CreateStudentInput>): Promise<Student> {
+  static async getStudents(filters?: StudentFilters): Promise<Student[]> {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
-      // Build full name if first_name or last_name is updated
-      let fullName: string | undefined;
-      if (updates.first_name || updates.last_name) {
-        const { data: currentStudent } = await supabase
-          .from('students')
-          .select('first_name, last_name')
-          .eq('id', id)
-          .single();
-        
-        const firstName = updates.first_name || currentStudent?.first_name || '';
-        const lastName = updates.last_name || currentStudent?.last_name || '';
-        fullName = `${firstName} ${lastName}`.trim();
-      }
-      
-      // Clean up empty strings for optional fields
-      const cleanedUpdates: any = {
-        ...updates,
-        date_of_birth: updates.date_of_birth === '' ? null : updates.date_of_birth,
-        city: updates.city === '' ? null : updates.city,
-        country: updates.country === '' ? null : updates.country,
-        skill_level: updates.skill_level === '' ? null : updates.skill_level,
-        notes: updates.notes === '' ? null : updates.notes
-      };
-      
-      if (fullName) {
-        cleanedUpdates.full_name = fullName;
-      }
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('students')
-        .update(cleanedUpdates)
+        .select('*')
+        .eq('school_id', schoolId)
+        .order('created_at', { ascending: false });
+
+      // Apply search filter
+      if (filters?.search) {
+        query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,student_code.ilike.%${filters.search}%`);
+      }
+
+      // Apply status filter
+      if (filters?.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      // Apply skill level filter
+      if (filters?.skill_level) {
+        query = query.eq('skill_level', filters.skill_level);
+      }
+
+      // Apply grade filter
+      if (filters?.grade) {
+        query = query.eq('grade', filters.grade);
+      }
+
+      // Apply gender filter
+      if (filters?.gender) {
+        query = query.eq('gender', filters.gender);
+      }
+
+      // Apply age range filter
+      if (filters?.ageRange) {
+        const today = new Date();
+        const [minAge, maxAge] = filters.ageRange;
+        
+        const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+        const minDate = new Date(today.getFullYear() - maxAge - 1, today.getMonth(), today.getDate());
+        
+        query = query.gte('date_of_birth', minDate.toISOString().split('T')[0])
+                     .lte('date_of_birth', maxDate.toISOString().split('T')[0]);
+      }
+
+      // Apply date range filters
+      if (filters?.createdAfter) {
+        query = query.gte('created_at', filters.createdAfter);
+      }
+      if (filters?.createdBefore) {
+        query = query.lte('created_at', filters.createdBefore);
+      }
+
+      // Apply country filter
+      if (filters?.country) {
+        query = query.eq('country', filters.country);
+      }
+
+      // Apply city filter
+      if (filters?.city) {
+        query = query.eq('city', filters.city);
+      }
+
+      // Apply has email filter
+      if (filters?.hasEmail !== undefined) {
+        if (filters.hasEmail) {
+          query = query.not('email', 'is', null);
+        } else {
+          query = query.is('email', null);
+        }
+      }
+
+      // Apply has phone filter
+      if (filters?.hasPhone !== undefined) {
+        if (filters.hasPhone) {
+          query = query.not('phone', 'is', null);
+        } else {
+          query = query.is('phone', null);
+        }
+      }
+
+      // Apply parent email filter
+      if (filters?.hasParentEmail !== undefined) {
+        if (filters.hasParentEmail) {
+          query = query.not('parent_email', 'is', null);
+        } else {
+          query = query.is('parent_email', null);
+        }
+      }
+
+      // Apply parent phone filter
+      if (filters?.hasParentPhone !== undefined) {
+        if (filters.hasParentPhone) {
+          query = query.not('parent_phone', 'is', null);
+        } else {
+          query = query.is('parent_phone', null);
+        }
+      }
+
+      // Apply emergency contact filter
+      if (filters?.hasEmergencyContact !== undefined) {
+        if (filters.hasEmergencyContact) {
+          query = query.not('emergency_contact_name', 'is', null);
+        } else {
+          query = query.is('emergency_contact_name', null);
+        }
+      }
+
+      // Apply medical info filter
+      if (filters?.hasMedicalInfo !== undefined) {
+        if (filters.hasMedicalInfo) {
+          query = query.not('medical_info', 'is', null);
+        } else {
+          query = query.is('medical_info', null);
+        }
+      }
+
+      // Apply portal access filter
+      if (filters?.hasPortalAccess !== undefined) {
+        if (filters.hasPortalAccess) {
+          query = query.eq('can_login', true).not('user_id', 'is', null);
+        } else {
+          query = query.or('can_login.eq.false,user_id.is.null');
+        }
+      }
+
+      // Apply tag filter (using exact match for now)
+      if (filters?.tags && filters.tags.length > 0) {
+        // For now, we'll check if any tag matches in the notes field
+        const tagQuery = filters.tags.map(tag => `notes.ilike.%${tag}%`).join(',');
+        query = query.or(tagQuery);
+      }
+
+      const { data: students, error } = await query;
+
+      if (error) {
+        console.error('Error fetching students:', error);
+        throw new Error(error.message);
+      }
+
+      return students || [];
+    } catch (error) {
+      console.error('Error in getStudents:', error);
+      throw error;
+    }
+  }
+
+  static async getStudent(id: string): Promise<Student | null> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data: student, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', id)
+        .eq('school_id', schoolId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // Not found
+        }
+        console.error('Error fetching student:', error);
+        throw new Error(error.message);
+      }
+
+      return student;
+    } catch (error) {
+      console.error('Error in getStudent:', error);
+      throw error;
+    }
+  }
+
+  static async updateStudent(id: string, data: Partial<StudentFormData>): Promise<Student> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      // Build emergency contact JSONB object for update
+      const updateData: any = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email || null,
+        phone: data.phone || null,
+        date_of_birth: data.date_of_birth || null,
+        grade: data.grade || null,
+        skill_level: data.skill_level || null,
+        country: data.country || null,
+        city: data.city || null,
+        notes: data.notes || null
+      };
+
+      // Build emergency contact JSONB if provided
+      if (data.emergency_contact_name || data.emergency_contact_phone || data.emergency_contact_relationship) {
+        const emergencyContact: any = {};
+        if (data.emergency_contact_name) emergencyContact.name = data.emergency_contact_name;
+        if (data.emergency_contact_phone) emergencyContact.phone = data.emergency_contact_phone;
+        if (data.emergency_contact_relationship) emergencyContact.relationship = data.emergency_contact_relationship;
+        updateData.emergency_contact = emergencyContact;
+      }
+
+      // Build parent info JSONB if provided
+      if (data.parent_name || data.parent_email || data.parent_phone) {
+        const parentInfo: any = {};
+        if (data.parent_name) parentInfo.name = data.parent_name;
+        if (data.parent_email) parentInfo.email = data.parent_email;
+        if (data.parent_phone) parentInfo.phone = data.parent_phone;
+        updateData.parent_info = parentInfo;
+      }
+      
+      const { data: student, error } = await supabase
+        .from('students')
+        .update(updateData)
         .eq('id', id)
         .eq('school_id', schoolId)
         .select()
@@ -409,42 +369,18 @@ export class StudentService {
         throw new Error(error.message);
       }
 
-      if (!data) {
-        throw new Error('Student not found or update failed');
-      }
-
       // Log activity
       await ActivityService.logActivity({
         action_type: 'student_updated',
         entity_type: 'student',
-        entity_id: data.id,
-        entity_name: `${data.first_name} ${data.last_name}`,
-        description: `updated student: ${data.first_name} ${data.last_name}`
+        entity_id: student.id,
+        entity_name: `${student.first_name} ${student.last_name}`,
+        description: `updated student: ${student.first_name} ${student.last_name}`
       });
 
-      return data;
+      return student;
     } catch (error) {
       console.error('Error in updateStudent:', error);
-      throw error;
-    }
-  }
-
-  static async updateStudentStatus(id: string, status: Student['status']): Promise<void> {
-    try {
-      const schoolId = await this.getCurrentSchoolId();
-      
-      const { error } = await supabase
-        .from('students')
-        .update({ status })
-        .eq('id', id)
-        .eq('school_id', schoolId);
-
-      if (error) {
-        console.error('Error updating student status:', error);
-        throw new Error(error.message);
-      }
-    } catch (error) {
-      console.error('Error in updateStudentStatus:', error);
       throw error;
     }
   }
@@ -547,30 +483,27 @@ export class StudentService {
           invite_sent_at: new Date().toISOString(),
           can_login: true
         })
-        .eq('id', studentId)
-        .eq('school_id', schoolId);
+        .eq('id', studentId);
 
       if (updateError) {
-        throw new Error('Failed to update student invitation status');
+        throw new Error('Failed to update student record');
       }
 
-      // Send invitation email
-      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      // Create activation link
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin || 'http://localhost:5174';
       const activationLink = `${baseUrl}/activate/student/${inviteToken}`;
-      const schoolName = (student.schools as any).name;
-      
+
+      // Send invitation email
       try {
         await EmailService.sendStudentInvitation(student.email, {
           studentName: `${student.first_name} ${student.last_name}`,
-          schoolName: schoolName,
-          inviterName: user.user_metadata?.full_name || 'School Administrator',
+          schoolName: student.schools?.name || 'School',
+          inviterName: user.user_metadata?.full_name || user.email || 'School Administrator',
           activationLink,
           expiresIn: '48 hours'
         });
       } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        
-        // Rollback invitation if email fails
+        // Rollback the invitation if email failed
         await supabase
           .from('students')
           .update({
@@ -625,113 +558,113 @@ export class StudentService {
     }
   }
 
-  static async activateStudentAccount(
-    token: string, 
-    password: string
-  ): Promise<{ success: boolean; error?: string }> {
+  // Get student by user ID (for student portal)
+  static async getStudentByUserId(userId: string): Promise<Student> {
     try {
-      // Get student by token
-      const student = await this.getStudentByToken(token);
-      if (!student) {
-        return { success: false, error: 'Invalid or expired invitation token' };
+      // Use RPC function which bypasses RLS and includes school data
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('get_student_with_school', { p_user_id: userId });
+
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        throw new Error('Failed to fetch student data');
       }
 
-      if (!student.email) {
-        return { success: false, error: 'Student email not found' };
+      if (!rpcData || rpcData.length === 0) {
+        throw new Error('Student not found or portal access not enabled');
       }
 
-      // Create auth user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: student.email,
-        password,
-        options: {
-          data: {
-            student_id: student.id,
-            full_name: `${student.first_name} ${student.last_name}`,
-            role: 'student'
-          }
-        }
-      });
-
-      if (signUpError || !authData.user) {
-        return { success: false, error: signUpError?.message || 'Failed to create account' };
-      }
-
-      // Update student record
-      const { error: updateError } = await supabase
-        .from('students')
-        .update({
-          user_id: authData.user.id,
-          invite_token: null, // Clear the token
-          account_created_at: new Date().toISOString()
-        })
-        .eq('id', student.id);
-
-      if (updateError) {
-        // TODO: Consider cleanup of auth user if this fails
-        return { success: false, error: 'Failed to link account' };
-      }
-
-      // Get school name for welcome email
-      const { data: school } = await supabase
-        .from('schools')
-        .select('name')
-        .eq('id', student.school_id)
-        .single();
-
-      // Send welcome email
-      if (school) {
-        await EmailService.sendWelcomeEmail(
-          student.email,
-          `${student.first_name} ${student.last_name}`,
-          school.name,
-          'student'
-        );
-      }
-
-      return { success: true };
+      const studentData = rpcData[0];
+      return {
+        ...studentData,
+        full_name: `${studentData.first_name} ${studentData.last_name}`,
+        school: studentData.school_name ? {
+          id: studentData.school_id,
+          name: studentData.school_name,
+          address: studentData.school_address,
+          phone: studentData.school_phone,
+          email: studentData.school_email
+        } : undefined
+      };
     } catch (error) {
-      console.error('Error activating student account:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      console.error('Error fetching student by user_id:', error);
+      throw error;
     }
   }
 
-  static async revokePortalAccess(studentId: string): Promise<void> {
+  static async revokePortalAccess(studentId: string): Promise<boolean> {
     try {
       const schoolId = await this.getCurrentSchoolId();
       
-      // Get student to check if they have a user_id
-      const { error: fetchError } = await supabase
-        .from('students')
-        .select('user_id')
-        .eq('id', studentId)
-        .eq('school_id', schoolId)
-        .single();
-
-      if (fetchError) {
-        throw new Error('Student not found');
-      }
-
-      // Update student record
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from('students')
         .update({
           can_login: false,
+          user_id: null,
           invite_token: null,
-          invite_sent_at: null
+          account_created_at: null
         })
         .eq('id', studentId)
         .eq('school_id', schoolId);
 
-      if (updateError) {
+      if (error) {
         throw new Error('Failed to revoke portal access');
       }
 
-      // If student has an auth account, we might want to disable it
-      // For now, we just prevent login via can_login flag
+      return true;
     } catch (error) {
       console.error('Error revoking portal access:', error);
       throw error;
     }
   }
+
+  // Bulk import methods
+  static async bulkImportStudents(students: Partial<StudentFormData>[]): Promise<{ 
+    success: number; 
+    failed: number; 
+    errors: Array<{ row: number; error: string; data: any }> 
+  }> {
+    const schoolId = await this.getCurrentSchoolId();
+    let success = 0;
+    let failed = 0;
+    const errors: Array<{ row: number; error: string; data: any }> = [];
+
+    // Process in batches of 50
+    const batchSize = 50;
+    for (let i = 0; i < students.length; i += batchSize) {
+      const batch = students.slice(i, i + batchSize);
+      
+      // Process each student in the batch
+      await Promise.all(batch.map(async (studentData, index) => {
+        const rowNum = i + index + 2; // +2 because Excel rows start at 1 and we skip header
+        try {
+          // Validate required fields
+          if (!studentData.first_name || !studentData.last_name) {
+            errors.push({
+              row: rowNum,
+              error: 'First name and last name are required',
+              data: studentData
+            });
+            failed++;
+            return;
+          }
+
+          // Create the student
+          await this.createStudent(studentData as StudentFormData);
+          success++;
+        } catch (error) {
+          errors.push({
+            row: rowNum,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            data: studentData
+          });
+          failed++;
+        }
+      }));
+    }
+
+    return { success, failed, errors };
+  }
 }
+
+export default StudentService;
