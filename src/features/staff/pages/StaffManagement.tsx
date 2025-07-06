@@ -7,6 +7,7 @@ import { StaffModal } from '../components/StaffModal';
 import { StaffCard } from '../components/StaffCard';
 import { StaffFilters } from '../components/StaffFilters';
 import { StaffStats } from '../components/StaffStats';
+import AvailabilityEditModal from '../components/AvailabilityEditModal';
 import type { Staff, StaffFilters as StaffFiltersType } from '../types/staff.types';
 import { 
   HiOutlineUserAdd, 
@@ -20,6 +21,8 @@ export function StaffManagement() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [availabilityStaff, setAvailabilityStaff] = useState<Staff | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<StaffFiltersType>({});
   const [stats, setStats] = useState<any>(null);
@@ -103,6 +106,19 @@ export function StaffManagement() {
       console.error('Error sending invitation:', error);
       showToast(error.message || 'Failed to send invitation', 'error');
     }
+  };
+
+  const handleEditAvailability = (staffMember: Staff) => {
+    setAvailabilityStaff(staffMember);
+    setShowAvailabilityModal(true);
+  };
+
+  const handleAvailabilitySave = (updatedStaff: Staff) => {
+    // Update the staff in the local state
+    setStaff(currentStaff => 
+      currentStaff.map(s => s.id === updatedStaff.id ? updatedStaff : s)
+    );
+    showToast(`Availability updated for ${updatedStaff.full_name}`, 'success');
   };
 
   const handleModalSave = () => {
@@ -248,6 +264,7 @@ export function StaffManagement() {
                     onEdit={handleEditStaff}
                     onDelete={handleDeleteStaff}
                     onSendInvitation={handleSendInvitation}
+                    onEditAvailability={handleEditAvailability}
                     getRoleIcon={getRoleIcon}
                     getStatusColor={getStatusColor}
                   />
@@ -265,6 +282,18 @@ export function StaffManagement() {
         onSave={handleModalSave}
         staff={editingStaff}
       />
+
+      {/* Availability Edit Modal */}
+      {showAvailabilityModal && availabilityStaff && (
+        <AvailabilityEditModal
+          staff={availabilityStaff}
+          onClose={() => {
+            setShowAvailabilityModal(false);
+            setAvailabilityStaff(null);
+          }}
+          onSave={handleAvailabilitySave}
+        />
+      )}
     </div>
   );
 }

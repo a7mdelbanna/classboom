@@ -10,7 +10,8 @@ import {
   HiOutlinePencil,
   HiOutlineTrash,
   HiOutlineLink,
-  HiOutlineRefresh
+  HiOutlineRefresh,
+  HiOutlineClock
 } from 'react-icons/hi';
 
 interface StaffCardProps {
@@ -18,6 +19,7 @@ interface StaffCardProps {
   onEdit: (staff: Staff) => void;
   onDelete: (staff: Staff) => void;
   onSendInvitation: (staff: Staff) => void;
+  onEditAvailability?: (staff: Staff) => void;
   getRoleIcon: (role: string) => string;
   getStatusColor: (status: string) => string;
 }
@@ -27,6 +29,7 @@ export function StaffCard({
   onEdit, 
   onDelete, 
   onSendInvitation, 
+  onEditAvailability,
   getRoleIcon, 
   getStatusColor 
 }: StaffCardProps) {
@@ -247,6 +250,21 @@ export function StaffCard({
           >
             <HiOutlinePencil className="w-4 h-4" />
           </motion.button>
+          
+          {onEditAvailability && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditAvailability(staff);
+              }}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+              title="Edit Availability"
+            >
+              <HiOutlineClock className="w-4 h-4" />
+            </motion.button>
+          )}
           
           {!staff.can_login && !staff.invite_sent_at && (
             <motion.button

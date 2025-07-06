@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import type { Staff, StaffFormData, StaffFilters, StaffCourseAssignment } from '../types/staff.types';
+import type { Staff, StaffFormData, StaffFilters, StaffCourseAssignment, WeeklyAvailability, TimeSlot } from '../types/staff.types';
 
 export class StaffService {
   // Get current school ID
@@ -528,6 +528,142 @@ export class StaffService {
       console.error('Error fetching staff stats:', error);
       throw error;
     }
+  }
+
+  // Update staff availability
+  static async updateStaffAvailability(staffId: string, availability: WeeklyAvailability): Promise<Staff> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data: staff, error } = await supabase
+        .from('staff')
+        .update({
+          availability,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', staffId)
+        .eq('school_id', schoolId)
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      
+      return this.enrichStaffData(staff);
+    } catch (error) {
+      console.error('Error updating staff availability:', error);
+      throw error;
+    }
+  }
+
+  // Get available staff for a specific time slot
+  static async getAvailableStaff(dayOfWeek: string, startTime: string, endTime: string): Promise<Staff[]> {
+    try {
+      const schoolId = await this.getCurrentSchoolId();
+      
+      const { data: allStaff, error } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('school_id', schoolId)
+        .eq('status', 'active');
+
+      if (error) throw new Error(error.message);
+      
+      // Filter staff who are available for the requested time slot
+      const availableStaff = allStaff.filter(staff => {
+        const availability = staff.availability as WeeklyAvailability;
+        if (!availability || !availability[dayOfWeek]) return false;
+        
+        const dayAvailability = availability[dayOfWeek];
+        if (!dayAvailability.available || !dayAvailability.slots) return false;
+        
+        // Check if any time slot covers the requested time
+        return dayAvailability.slots.some(slot => 
+          this.timeSlotOverlaps(slot, { start: startTime, end: endTime })
+        );
+      });
+      
+      return availableStaff.map(s => this.enrichStaffData(s));
+    } catch (error) {
+      console.error('Error getting available staff:', error);
+      throw error;
+    }
+  }
+
+  // Check if a staff member is available at a specific time
+  static isStaffAvailable(availability: WeeklyAvailability, dayOfWeek: string, startTime: string, endTime: string): boolean {
+    if (!availability || !availability[dayOfWeek]) return false;
+    
+    const dayAvailability = availability[dayOfWeek];
+    if (!dayAvailability.available || !dayAvailability.slots) return false;
+    
+    return dayAvailability.slots.some(slot => 
+      this.timeSlotCovers(slot, { start: startTime, end: endTime })
+    );
+  }
+
+  // Check if two time slots overlap
+  private static timeSlotOverlaps(slot1: TimeSlot, slot2: TimeSlot): boolean {
+    const start1 = this.timeToMinutes(slot1.start);
+    const end1 = this.timeToMinutes(slot1.end);
+    const start2 = this.timeToMinutes(slot2.start);
+    const end2 = this.timeToMinutes(slot2.end);
+    
+    return start1 < end2 && start2 < end1;
+  }
+
+  // Check if one time slot completely covers another
+  private static timeSlotCovers(availableSlot: TimeSlot, requestedSlot: TimeSlot): boolean {
+    const availStart = this.timeToMinutes(availableSlot.start);
+    const availEnd = this.timeToMinutes(availableSlot.end);
+    const reqStart = this.timeToMinutes(requestedSlot.start);
+    const reqEnd = this.timeToMinutes(requestedSlot.end);
+    
+    return availStart <= reqStart && availEnd >= reqEnd;
+  }
+
+  // Convert time string to minutes for comparison
+  private static timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  // Get staff weekly schedule summary
+  static getStaffScheduleSummary(availability: WeeklyAvailability): {
+    totalHours: number;
+    availableDays: number;
+    busyDays: string[];
+    longestDay: { day: string; hours: number } | null;
+  } {
+    let totalHours = 0;
+    let availableDays = 0;
+    const busyDays: string[] = [];
+    let longestDay: { day: string; hours: number } | null = null;
+
+    Object.entries(availability).forEach(([day, dayAvail]) => {
+      if (dayAvail.available && dayAvail.slots && dayAvail.slots.length > 0) {
+        availableDays++;
+        busyDays.push(day);
+        
+        const dayHours = dayAvail.slots.reduce((total, slot) => {
+          const start = this.timeToMinutes(slot.start);
+          const end = this.timeToMinutes(slot.end);
+          return total + (end - start) / 60;
+        }, 0);
+        
+        totalHours += dayHours;
+        
+        if (!longestDay || dayHours > longestDay.hours) {
+          longestDay = { day, hours: dayHours };
+        }
+      }
+    });
+
+    return {
+      totalHours: Math.round(totalHours * 100) / 100,
+      availableDays,
+      busyDays,
+      longestDay
+    };
   }
 
   // Enrich staff data with computed fields

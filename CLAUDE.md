@@ -307,7 +307,81 @@ RETURNS VOID;
 - Authentication: Supabase Auth with email verification
 - Routing: React Router v6
 
-## 🎉 LATEST UPDATE (2025-07-06 @ 15:30): PAYROLL TRACKING SYSTEM IMPLEMENTED!
+## 🎉 LATEST UPDATE (2025-07-06 @ 18:50): STAFF AVAILABILITY & SCHEDULING SYSTEM COMPLETE!
+
+### ✅ **STAFF AVAILABILITY & SCHEDULING SYSTEM FULLY OPERATIONAL** 🆕
+
+The complete staff availability and scheduling foundation is now working end-to-end:
+
+1. **Weekly Availability Management** ✅
+   - Interactive weekly schedule builder with day-by-day configuration
+   - Multiple time slots per day support (e.g., 9-12, 2-5 for breaks)
+   - "Copy from previous day" functionality for quick setup
+   - Visual availability overview with color-coded days
+   - Real-time schedule validation and constraint checking
+
+2. **Professional UI Components** ✅
+   - **WeeklyAvailability**: Interactive schedule builder with animations
+   - **AvailabilityEditModal**: Professional modal with staff profile integration
+   - **AvailabilityDisplay**: Read-only schedule viewing (compact & full modes)
+   - **StaffAvailabilityCard**: Dedicated card for staff portal use
+   - Enhanced StaffCard with purple clock icon for quick access
+
+3. **Smart Schedule Analytics** ✅
+   - Real-time summary calculations (total hours, available days, longest day)
+   - Working hours constraint validation with visual warnings
+   - Schedule statistics dashboard with beautiful cards
+   - Daily breakdown with time slot details
+
+4. **Database Integration** ✅
+   - Availability stored as JSONB in existing staff table (no migration needed)
+   - `updateStaffAvailability()` for saving schedules
+   - `getAvailableStaff()` for finding available teachers at specific times
+   - `isStaffAvailable()` for availability checking
+   - Time slot overlap and coverage logic for scheduling validation
+
+5. **Scheduling Foundation Ready** ✅
+   - Staff availability checking utilities
+   - Time slot conflict detection
+   - Cross-currency and cross-availability filtering
+   - Foundation ready for sessions/classes module implementation
+
+### 🔧 **STAFF SCHEDULING TECHNICAL IMPLEMENTATION**
+
+**Time Slot Logic:**
+```typescript
+// Check if staff is available for specific time
+StaffService.isStaffAvailable(availability, 'monday', '10:00', '12:00')
+
+// Find all available staff for a time slot
+StaffService.getAvailableStaff('tuesday', '14:00', '16:00')
+
+// Get weekly schedule summary
+StaffService.getStaffScheduleSummary(availability)
+```
+
+**Availability Data Structure:**
+```typescript
+{
+  monday: { 
+    available: true, 
+    slots: [
+      { start: "09:00", end: "12:00" },
+      { start: "14:00", end: "17:00" }
+    ]
+  },
+  tuesday: { available: false, slots: [] }
+}
+```
+
+**Key Architecture Decisions:**
+- Staff availability stored as JSONB for flexibility
+- Time slots support breaks and split schedules
+- Schedule validation against min/max weekly hours
+- Real-time UI updates with Framer Motion animations
+- Portal component prevents modal dropdown cutoff issues
+
+## 🎉 PREVIOUS UPDATE (2025-07-06 @ 15:30): PAYROLL TRACKING SYSTEM IMPLEMENTED!
 
 ### ✅ **PAYROLL SYSTEM FULLY OPERATIONAL** 🆕
 
@@ -591,7 +665,7 @@ The complete Staff & HR Management System with Portal Invitations is now fully o
    - For already invited staff, use "Resend Invitation" (refresh icon)
    - Check the portal status display in the staff card
 
-## Current Status (Last Updated: 2025-07-06 @ 18:35)
+## Current Status (Last Updated: 2025-07-06 @ 18:50)
 
 ### ✅ **Foundation Phase 1: Staff & HR Management - COMPLETE**
 
@@ -623,6 +697,10 @@ The complete Staff & HR Management System with Portal Invitations is now fully o
 **Technical Features**:
 - ✅ TypeScript interfaces for all staff-related data
 - ✅ Proper date validation and null handling
+- ✅ **NEW**: Staff availability & scheduling system
+- ✅ **NEW**: Weekly availability management with time slots
+- ✅ **NEW**: Schedule analytics and constraint validation
+- ✅ **NEW**: Time slot conflict detection utilities
 - ✅ Navigation integration with sidebar
 - ✅ Modal triggers via URL parameters and custom events
 - ✅ Safe RLS policies using RPC functions
@@ -634,9 +712,10 @@ The complete Staff & HR Management System with Portal Invitations is now fully o
 1. **✅ COMPLETED: Staff Portal System** - Full invitation, activation, login, and dashboard flow
 2. **✅ COMPLETED: Payroll Tracking System** - Track and manage staff compensation with approval workflow
 3. **✅ COMPLETED: Foundation Phase 3: Financial Infrastructure** - Multi-currency accounts, exchange rates, and financial settings
-4. **Sessions/Classes Module** - Create actual scheduled classes from enrollments
-5. **Foundation Phase 2**: Locations & Resources Management
-6. **Staff Scheduling** - Assign staff to classes and track hours
+4. **✅ COMPLETED: Staff Availability & Scheduling System** - Weekly availability management with conflict detection
+5. **🎯 NEXT: Sessions/Classes Module** - Create actual scheduled classes from enrollments
+6. **Foundation Phase 2**: Locations & Resources Management
+7. **Enhanced Enrollments** - Teacher/room assignment with session management
 
 ### ✅ Completed Features:
 
@@ -714,6 +793,7 @@ The complete Staff & HR Management System with Portal Invitations is now fully o
    - Core tables: `public.schools`, `public.students`, `public.staff` with RLS policies
    - **NEW**: Comprehensive staff management tables with compensation tracking
    - **NEW**: Staff course assignments and payroll management tables
+   - **NEW**: Staff availability stored as JSONB with time slot support
    - Automatic school creation on signup
    - Row-level security ensures complete data isolation
    - Fixed schema_name constraints (removed UNIQUE, made nullable with default)
@@ -784,6 +864,12 @@ The complete Staff & HR Management System with Portal Invitations is now fully o
    - **Data Validation**: Proper date handling and null value management
    - **Database Architecture**: Complete staff tables with RLS security
    - **Business Logic**: Full CRUD operations with course assignments
+   - **✅ NEW: Availability & Scheduling System**:
+     - Weekly availability management with interactive schedule builder
+     - Multiple time slots per day support (breaks, split schedules)
+     - Real-time schedule analytics and constraint validation
+     - Time slot conflict detection for scheduling optimization
+     - Purple clock icon for quick availability access
 
 9. **Setup Wizard System** ✅ **FULLY COMPLETE!**
    - **25+ Institution Types**: Schools, gyms, tutoring centers, etc.
@@ -1090,6 +1176,8 @@ VITE_SUPABASE_ANON_KEY=eyJhbGc...
    - Portal invitation system with email activation
    - Staff portal dashboard with role-based access
    - Payroll tracking and approval workflow
+   - **✅ NEW: Weekly availability & scheduling system**
+   - **✅ NEW: Time slot conflict detection and analytics**
 
 4. **Complete Financial Infrastructure** 🆕
    - Multi-currency payment accounts (Cash, Bank, Stripe, PayPal)
@@ -1627,17 +1715,17 @@ AS $$ SELECT ... $$;
 All core foundation systems are working correctly:
 - ✅ **Authentication & Multi-Role System**: Complete with school/student/parent/staff portals
 - ✅ **Student Management**: Full CRUD with bulk import, filtering, and portal invitations
-- ✅ **Staff & HR Management**: Complete with portal access and payroll tracking
+- ✅ **Staff & HR Management**: Complete with portal access, payroll tracking, and availability scheduling
 - ✅ **Financial Infrastructure**: Multi-currency accounts, exchange rates, and settings
 - ✅ **Course & Enrollment Management**: Course catalog and enrollment tracking
 - ✅ **Activity Tracking**: School-scoped activity logging
 - ✅ **Beautiful UI/UX**: Dark mode, animations, responsive design
 - ✅ **Database Architecture**: Multi-tenant RLS with complete isolation
 
-**🎯 NEXT PHASE**: Sessions/Classes Module to convert enrollments into actual scheduled sessions
+**🎯 NEXT PHASE**: Sessions/Classes Module to convert enrollments into actual scheduled sessions with staff availability integration
 
 ---
 
 **REMEMBER**: ClassBoom is a premium SaaS product. Every interaction should feel delightful! 🚀
 
-**Last updated: 2025-07-06 @ 18:35 - Financial Infrastructure Complete**
+**Last updated: 2025-07-06 @ 18:50 - Staff Availability & Scheduling System Complete**
