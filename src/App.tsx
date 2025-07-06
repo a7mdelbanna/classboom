@@ -28,6 +28,7 @@ import { ParentPortalDashboard } from './features/parents/pages/ParentPortalDash
 import { StaffPortalDashboard } from './features/staff/pages/StaffPortalDashboard';
 import { LandingPage } from './features/landing/pages/LandingPage';
 import { PayrollManagement, PayrollDetail } from './features/payroll';
+import { FinancialManagement } from './features/financial';
 
 function App() {
   return (
@@ -81,6 +82,9 @@ function App() {
             {/* Payroll Management Routes */}
             <Route path="/payroll" element={<PayrollManagement />} />
             <Route path="/payroll/:id" element={<PayrollDetail />} />
+            
+            {/* Financial Management Routes */}
+            <Route path="/financial" element={<FinancialManagement />} />
             
             {/* Placeholder routes for other sections */}
             <Route path="/classes" element={<div>Classes Page</div>} />
